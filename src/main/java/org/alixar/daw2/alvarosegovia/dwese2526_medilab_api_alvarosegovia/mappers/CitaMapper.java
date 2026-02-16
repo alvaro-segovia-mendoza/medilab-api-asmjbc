@@ -99,10 +99,6 @@ public class CitaMapper {
         entity.setTipoPrueba(dto.getTipoPrueba());
         entity.setEstado(dto.getEstadoCita());
 
-        Tecnico tecnico = new Tecnico();
-        tecnico.setId(dto.getTecnicoId());
-        entity.setTecnico(tecnico);
-
         return entity;
     }
 
@@ -139,9 +135,5 @@ public class CitaMapper {
         entity.setFechaHora(dto.getFechaHora());
         entity.setTipoPrueba(dto.getTipoPrueba());
         entity.setEstado(dto.getEstadoCita());
-
-        Tecnico tecnico = new Tecnico();
-        tecnico.setId(dto.getTecnicoId());
-        entity.setTecnico(tecnico);
     }
 }
