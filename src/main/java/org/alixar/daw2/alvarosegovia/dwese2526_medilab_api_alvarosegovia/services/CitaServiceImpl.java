@@ -5,10 +5,12 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.Cit
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.CitaDetailDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.CitaUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Cita;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Tecnico;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.DuplicateResourceException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ResourceNotFoundException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers.CitaMapper;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.CitaRepository;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TecnicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,9 @@ public class CitaServiceImpl implements CitaService {
 
     @Autowired
     private CitaRepository citaRepository;
+
+    @Autowired
+    private TecnicoRepository tecnicoRepository;
 
     /**
      * Obtiene una lista paginada de citas.
@@ -58,9 +63,19 @@ public class CitaServiceImpl implements CitaService {
         }
 
         Cita cita = CitaMapper.toEntity(dto);
+
+        Tecnico tecnico = tecnicoRepository.findById(dto.getTecnicoId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("tecnico", "id", dto.getTecnicoId())
+                );
+
+        cita.setTecnico(tecnico);
+
         cita = citaRepository.save(cita);
+
         return CitaMapper.toDTO(cita);
     }
+
 
     /**
      * Actualiza una cita existente.
@@ -69,7 +84,7 @@ public class CitaServiceImpl implements CitaService {
     public CitaDTO update(CitaUpdateDTO dto) {
 
         if (citaRepository.existsByCodigoAndIdNot(dto.getCodigo(), dto.getId())) {
-            throw new ResourceNotFoundException("cita", "codigo", dto.getCodigo());
+            throw new DuplicateResourceException("cita", "codigo", dto.getCodigo());
         }
 
         Cita cita = citaRepository.findById(dto.getId())
@@ -77,10 +92,22 @@ public class CitaServiceImpl implements CitaService {
                         new ResourceNotFoundException("cita", "id", dto.getId())
                 );
 
+        // Copiamos campos simples
         CitaMapper.copyToExistingEntity(dto, cita);
+
+        // Resolvemos Técnico REAL desde BD
+        Tecnico tecnico = tecnicoRepository.findById(dto.getTecnicoId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("tecnico", "id", dto.getTecnicoId())
+                );
+
+        cita.setTecnico(tecnico);
+
         cita = citaRepository.save(cita);
+
         return CitaMapper.toDTO(cita);
     }
+
 
     /**
      * Elimina una cita por su identificador.
