@@ -24,8 +24,9 @@ INSERT IGNORE INTO users (
 INSERT IGNORE INTO roles (id, name, display_name, description) VALUES
 (1, 'ROLE_ADMIN', 'Administrator', 'Acceso total a todas las funcionalidades del sistema'),
 (2, 'ROLE_USER', 'User', 'Usuario estándar'),
-(3, 'ROLE_MANAGER', 'Manager', 'Usuario gestor de la aplicación tiene acceso a las funcionalidades de gestión de datos');
-
+(3, 'ROLE_DOCTOR', 'Doctor', 'Usuario médico'),
+(4, 'ROLE_TECHNICIAN', 'Technician', 'Usuario técnico'),
+(5, 'ROLE_PATIENT', 'Patient', 'Usuario paciente');
 
 INSERT IGNORE INTO user_roles (user_id, role_id) VALUES
 -- Usuario 1: admin completo
