@@ -49,6 +49,11 @@ public class UserProfileMapper {
             dto.setProfileImage(profile.getProfileImage());
             dto.setBio(profile.getBio());
             dto.setLocale(profile.getLocale());
+            dto.setDni(profile.getDni());
+            dto.setDateOfBirth(profile.getDateOfBirth());
+            dto.setAddress(profile.getAddress());
+            dto.setCity(profile.getCity());
+            dto.setProvince(profile.getProvince());
         }
 
         return dto;
@@ -84,6 +89,11 @@ public class UserProfileMapper {
         profile.setProfileImage(dto.getProfileImage());
         profile.setBio(dto.getBio());
         profile.setLocale(dto.getLocale());
+        profile.setDni(dto.getDni());
+        profile.setDateOfBirth(dto.getDateOfBirth());
+        profile.setAddress(dto.getAddress());
+        profile.setCity(dto.getCity());
+        profile.setProvince(dto.getProvince());
 
         return profile;
     }
@@ -109,6 +119,11 @@ public class UserProfileMapper {
         profile.setProfileImage(dto.getProfileImage());
         profile.setBio(dto.getBio());
         profile.setLocale(dto.getLocale());
+        profile.setDni(dto.getDni());
+        profile.setDateOfBirth(dto.getDateOfBirth());
+        profile.setAddress(dto.getAddress());
+        profile.setCity(dto.getCity());
+        profile.setProvince(dto.getProvince());
     }
 
 }

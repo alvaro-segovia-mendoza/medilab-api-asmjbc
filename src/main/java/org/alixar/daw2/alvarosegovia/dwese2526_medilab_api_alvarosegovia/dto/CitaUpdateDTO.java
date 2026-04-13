@@ -18,10 +18,6 @@ public class CitaUpdateDTO {
     @NotNull(message = "{msg.cita.id.notEmpty}")
     private Long id;
 
-    @NotBlank(message = "{msg.cita.codigo.notEmpty}")
-    @Size(max = 50, message = "{msg.cita.codigo.size}")
-    private String codigo;
-
     @NotNull(message = "{msg.cita.fechaHora.notEmpty}")
     private LocalDateTime fechaHora;
 
@@ -32,6 +28,13 @@ public class CitaUpdateDTO {
     @NotNull(message = "{msg.cita.estado.notEmpty}")
     private Cita.EstadoCita estadoCita;
 
-    @NotNull(message = "{msg.cita.tecnico.notEmpty}")
+    @NotNull(message = "{msg.cita.paciente.notEmpty}")
+    private Long pacienteId;
+
+    @NotNull(message = "{msg.cita.parada.notEmpty}")
+    private Long paradaId;
+
     private Long tecnicoId;
+
+    private Long doctorId;
 }

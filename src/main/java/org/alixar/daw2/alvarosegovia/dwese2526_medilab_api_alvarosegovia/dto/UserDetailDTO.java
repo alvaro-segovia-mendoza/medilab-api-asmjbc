@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -64,6 +65,21 @@ public class UserDetailDTO {
 
 
     private String locale;
+
+
+    private String dni;
+
+
+    private LocalDate dateOfBirth;
+
+
+    private String address;
+
+
+    private String city;
+
+
+    private String province;
 
 
     // ────────────────────────────────────────────

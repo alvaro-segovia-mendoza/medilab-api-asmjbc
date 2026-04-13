@@ -51,7 +51,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      * <ul>
      *   <li>{@code username}: email</li>
      *   <li>{@code password}: hash BCrypt almacenado en {@code password_hash}</li>
-     *   <li>{@code authorities}: roles tipo {@code ROLE_USER}, {@code ROLE_ADMIN}, etc.</li>
+     *   <li>{@code authorities}: roles tipo {@code ROLE_ADMIN}, etc.</li>
      *   <li>{@code disabled}: basado en {@code active}</li>
      * </ul>
      * </p>
@@ -85,7 +85,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .password(user.getPasswordHash())
                 .authorities(
                         user.getRoles().stream()
-                                .map(role -> role.getName()) // ROLE_ADMIN, ROLE_USER...
+                                .map(role -> role.getName()) // ROLE_ADMIN, ...
                                 .collect(Collectors.toList())
                                 .toArray(new String[0])
                 )

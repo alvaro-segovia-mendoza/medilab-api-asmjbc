@@ -13,9 +13,14 @@ import java.time.LocalDateTime;
 public class CitaDetailDTO {
 
     private Long id;
-    private String codigo;
     private LocalDateTime fechaHora;
     private String tipoPrueba;
     private Cita.EstadoCita estadoCita;
-    private TecnicoDTO tecnico;
+
+    private UserBasicDTO paciente;
+    private UserBasicDTO tecnico;
+    private UserBasicDTO doctor;
+    private ParadaBasicDTO parada;
+    private String rutaNombre;
+    private String trailerNombre;
 }

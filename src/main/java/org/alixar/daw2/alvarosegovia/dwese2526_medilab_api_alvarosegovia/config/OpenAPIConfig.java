@@ -10,7 +10,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "Ticket Logger API", version = "1.0", description = "API para gestión de tickets"),
+        info = @Info(
+                title = "Medilab API",
+                version = "1.0",
+                description = "API para gestión de trailers, rutas, paradas, citas, registros clínicos e historial médico"
+        ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
@@ -21,4 +25,3 @@ import org.springframework.context.annotation.Configuration;
 )
 public class OpenAPIConfig {
 }
-

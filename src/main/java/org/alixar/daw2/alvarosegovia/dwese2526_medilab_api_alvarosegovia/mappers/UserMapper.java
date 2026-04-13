@@ -112,6 +112,11 @@ public class UserMapper {
             dto.setProfileImage(profile.getProfileImage());
             dto.setBio(profile.getBio());
             dto.setLocale(profile.getLocale());
+            dto.setDni(profile.getDni());
+            dto.setDateOfBirth(profile.getDateOfBirth());
+            dto.setAddress(profile.getAddress());
+            dto.setCity(profile.getCity());
+            dto.setProvince(profile.getProvince());
         }
 
 

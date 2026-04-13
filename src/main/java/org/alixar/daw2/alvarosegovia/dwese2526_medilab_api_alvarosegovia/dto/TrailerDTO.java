@@ -5,24 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO básico para mostrar técnicos en listados.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TecnicoDTO {
-
+public class TrailerDTO {
     private Long id;
+    private String codigo;
     private String nombre;
-    private String apellidos;
-    private String email;
-    private String telefono;
     private boolean activo;
-    private String dni;
-    private String fechaNacimiento;
-    private String direccion;
-    private String localidad;
-    private String provincia;
+    private String descripcion;
 }
