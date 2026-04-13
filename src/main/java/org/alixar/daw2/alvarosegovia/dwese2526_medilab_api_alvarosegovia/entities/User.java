@@ -42,7 +42,7 @@ public class User {
 
 
     /** VARCHAR(100) NOT NULL UNIQUE */
-    @Column(name = "email", nullable = false, unique = true, length = 40)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
 

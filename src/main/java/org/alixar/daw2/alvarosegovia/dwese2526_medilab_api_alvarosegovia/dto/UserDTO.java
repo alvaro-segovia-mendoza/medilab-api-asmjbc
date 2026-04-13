@@ -22,8 +22,6 @@ public class UserDTO {
     private Long id;
 
     private String email;
-
-    private String passwordHash;
     // Indicadores de estado de la cuenta
     private Boolean active;
     private Boolean accountNonLocked;
@@ -41,4 +39,3 @@ public class UserDTO {
     private Set<String> roles;
 
 }
-

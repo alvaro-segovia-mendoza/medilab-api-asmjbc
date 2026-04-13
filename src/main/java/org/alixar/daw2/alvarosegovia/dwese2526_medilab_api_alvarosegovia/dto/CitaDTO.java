@@ -13,11 +13,17 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CitaDTO {
+
     private Long id;
-    private String codigo;
     private LocalDateTime fechaHora;
     private String tipoPrueba;
     private Cita.EstadoCita estadoCita;
-    private String tecnicoNombre; // Para mostrar a qué técnico pertenece
-}
 
+    private String pacienteNombre;
+    private String tecnicoNombre;
+    private String doctorNombre;
+    private String paradaNombre;
+    private String municipioParada;
+    private String rutaNombre;
+    private String trailerNombre;
+}

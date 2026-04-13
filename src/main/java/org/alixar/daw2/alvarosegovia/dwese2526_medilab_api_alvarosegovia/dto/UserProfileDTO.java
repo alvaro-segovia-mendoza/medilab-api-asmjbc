@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 /**
  * DTO para el formulario de edición del perfil de usuario.
  *
@@ -48,5 +50,25 @@ public class UserProfileDTO {
     /** VARCHAR(10) NULL - Código idioma/locale (es_ES, en_ES...) */
     @Size(max = 10, message = "{msg.userProfile.locale.size}")
     private String locale;
+
+    /** VARCHAR(20) NOT NULL UNIQUE */
+    @NotBlank(message = "{msg.userProfile.dni.notblank}")
+    @Size(max = 20, message = "{msg.userProfile.dni.size}")
+    private String dni;
+
+    /** DATE NULL */
+    private LocalDate dateOfBirth;
+
+    /** VARCHAR(150) NULL */
+    @Size(max = 150, message = "{msg.userProfile.address.size}")
+    private String address;
+
+    /** VARCHAR(50) NULL */
+    @Size(max = 50, message = "{msg.userProfile.city.size}")
+    private String city;
+
+    /** VARCHAR(50) NULL */
+    @Size(max = 50, message = "{msg.userProfile.province.size}")
+    private String province;
 
 }

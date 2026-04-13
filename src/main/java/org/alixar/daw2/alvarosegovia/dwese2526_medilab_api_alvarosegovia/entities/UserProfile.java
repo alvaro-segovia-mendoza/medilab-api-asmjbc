@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -33,12 +34,12 @@ public class UserProfile {
     @JoinColumn(name = "user_id")
     private User user;
 
-    /** VARCHAR(100) NOT NULL */
-    @Column(name = "first_name", nullable = false, length = 100)
+    /** VARCHAR(60) NOT NULL */
+    @Column(name = "first_name", nullable = false, length = 60)
     private String firstName;
 
-    /** VARCHAR(100) NOT NULL */
-    @Column(name = "last_name", nullable = false, length = 100)
+    /** VARCHAR(80) NOT NULL */
+    @Column(name = "last_name", nullable = false, length = 80)
     private String lastName;
 
     /** VARCHAR(30) NULL */
@@ -56,6 +57,26 @@ public class UserProfile {
     /** VARCHAR(10) NULL - Código idioma/locale (es_ES, en_ES...) */
     @Column(name = "locale", length = 10)
     private String locale;
+
+    /** VARCHAR(20) NOT NULL UNIQUE */
+    @Column(name = "dni", nullable = false, unique = true, length = 20)
+    private String dni;
+
+    /** DATE NULL */
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    /** VARCHAR(150) NULL */
+    @Column(name = "address", length = 150)
+    private String address;
+
+    /** VARCHAR(50) NULL */
+    @Column(name = "city", length = 50)
+    private String city;
+
+    /** VARCHAR(50) NULL */
+    @Column(name = "province", length = 50)
+    private String province;
 
     /** DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP (gestionado por la BD) */
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
@@ -75,7 +96,12 @@ public class UserProfile {
                        String phoneNumber,
                        String profileImage,
                        String bio,
-                       String locale) {
+                       String locale,
+                       String dni,
+                       LocalDate dateOfBirth,
+                       String address,
+                       String city,
+                       String province) {
         this.user = user;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -83,5 +109,10 @@ public class UserProfile {
         this.profileImage = profileImage;
         this.bio = bio;
         this.locale = locale;
+        this.dni = dni;
+        this.dateOfBirth = dateOfBirth;
+        this.address = address;
+        this.city = city;
+        this.province = province;
     }
 }

@@ -129,6 +129,24 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    /**
+     * Errores semánticos de validación de negocio -> 400 Bad Request.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorDTO> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest req) {
+
+
+        ApiErrorDTO body = ApiErrorDTO.basic(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
 
     /**
      * Cualquier error no controlado -> 500 Internal Server Error.
@@ -186,4 +204,3 @@ public class ApiExceptionHandler {
     }
 
 }
-

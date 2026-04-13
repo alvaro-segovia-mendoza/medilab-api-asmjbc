@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -72,9 +73,37 @@ public class SecurityConfig {
                         .requestMatchers("/error", "/error/**").permitAll()
 
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/tecnicos/**").hasAnyRole("ADMIN", "MANAGER")
-                        .requestMatchers("/api/citas/**").hasRole("MANAGER")
-                        .requestMatchers("/api/profile/**").hasRole("USER")
+                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/rutas/activas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/paradas/ruta/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/paradas/activas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/paradas/*/slots-disponibles").authenticated()
+                        .requestMatchers("/api/trailers/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/rutas/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/rutas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/rutas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/rutas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/paradas/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/paradas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/paradas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/paradas/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/citas").hasAnyRole("PACIENTE", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/citas/*/confirm").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/citas/*/cancel").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/citas/**").hasAnyRole("PACIENTE", "TECNICO", "MEDICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/citas/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/citas/**").hasRole("ADMIN")
+
+                        .requestMatchers("/api/tecnicos/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers("/api/medicos/**").hasAnyRole("MEDICO", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/registros-clinicos").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/registros-clinicos/*/submit-review").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/registros-clinicos/*/review").hasAnyRole("MEDICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/paciente/*/historial").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/**").hasAnyRole("TECNICO", "MEDICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/historiales-clinicos/pacientes/*").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -113,13 +142,12 @@ public class SecurityConfig {
                         "/login","/logout")
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().hasRole("ADMIN")
+                        .anyRequest().permitAll()
                 )
-                .formLogin(form -> form.permitAll())
-                .logout(logout -> logout.logoutUrl("/logout"))
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         return http.build();
     }
 }
-

@@ -1,0 +1,1 @@
+This is a **medical mobile clinic REST API** — patients book appointments at scheduled stops on routes served by mobile medical trailers. Clinical records are created by technicians and reviewed by doctors.

@@ -19,6 +19,10 @@ public interface CitaService {
 
     CitaDTO update(CitaUpdateDTO dto);
 
+    CitaDTO confirm(Long id);
+
+    CitaDTO cancel(Long id);
+
     void delete(Long id);
 
     CitaDetailDTO getDetail(Long id);

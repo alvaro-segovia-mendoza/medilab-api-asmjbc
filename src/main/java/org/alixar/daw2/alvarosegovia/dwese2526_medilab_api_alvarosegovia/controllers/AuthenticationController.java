@@ -1,5 +1,10 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthRequestDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthResponseDTO;
@@ -20,6 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Autenticación", description = "Login y obtención del token JWT")
 public class AuthenticationController {
 
     @Autowired
@@ -29,6 +35,12 @@ public class AuthenticationController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/authenticate")
+    @Operation(summary = "Autenticar usuario", description = "Devuelve un JWT válido para consumir la API.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Autenticación correcta"),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
+    })
+    @SecurityRequirements
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) throws AuthenticationException {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
