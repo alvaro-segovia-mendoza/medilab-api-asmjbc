@@ -104,7 +104,7 @@ public class User {
 
 
     /** Constructor completo (sin id autogenerado). */
-    public User(String username,
+    public User(String email,
                 String passwordHash,
                 Boolean active,
                 Boolean accountNonLocked,
@@ -113,7 +113,7 @@ public class User {
                 Integer failedLoginAttempts,
                 Boolean emailVerified,
                 Boolean mustChangePassword) {
-        this.email = username;
+        this.email = email;
         this.passwordHash = passwordHash;
         this.active = active;
         this.accountNonLocked = accountNonLocked;

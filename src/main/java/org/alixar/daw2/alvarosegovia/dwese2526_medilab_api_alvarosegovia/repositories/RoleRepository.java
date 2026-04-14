@@ -4,6 +4,7 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,5 +22,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
      * @return lista de roles encontrados
      */
     List<Role> findByIdIn(Set<Long> ids);
+
+    Optional<Role> findByName(String name);
 
 }

@@ -5,6 +5,7 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.Use
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserProfilePatchDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.UserProfile;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.DuplicateResourceException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.InvalidFileException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ResourceNotFoundException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers.UserProfileMapper;
@@ -96,6 +97,25 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (patchDto.getLocale() != null) {
             profile.setLocale(patchDto.getLocale());
         }
+        if (patchDto.getDni() != null) {
+            String normalizedDni = normalizeDni(patchDto.getDni());
+            if (userProfileRepository.existsByDniIgnoreCaseAndIdNot(normalizedDni, userId)) {
+                throw new DuplicateResourceException("userProfile", "dni", normalizedDni);
+            }
+            profile.setDni(normalizedDni);
+        }
+        if (patchDto.getDateOfBirth() != null) {
+            profile.setDateOfBirth(patchDto.getDateOfBirth());
+        }
+        if (patchDto.getAddress() != null) {
+            profile.setAddress(patchDto.getAddress());
+        }
+        if (patchDto.getCity() != null) {
+            profile.setCity(patchDto.getCity());
+        }
+        if (patchDto.getProvince() != null) {
+            profile.setProvince(patchDto.getProvince());
+        }
 
 
         // 4) Imagen: validar + guardar nueva + borrar anterior
@@ -135,6 +155,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         userProfileRepository.save(profile);
     }
 
+    private String normalizeDni(String dni) {
+        return dni == null ? null : dni.trim().toUpperCase();
+    }
 
 
     private void validateProfileImage(MultipartFile file) {
