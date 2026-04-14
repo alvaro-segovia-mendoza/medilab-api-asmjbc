@@ -27,4 +27,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     @Query("SELECT CASE WHEN COUNT(up) > 0 THEN true ELSE false END FROM UserProfile up WHERE up.user.id = :userId")
     boolean existsByUserId(@Param("userId") Long userId);
 
+    boolean existsByDniIgnoreCase(String dni);
+
+    boolean existsByDniIgnoreCaseAndIdNot(String dni, Long id);
+
 }

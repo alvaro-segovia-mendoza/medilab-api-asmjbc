@@ -37,6 +37,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
+     * Comprueba si existe un usuario con el email indicado, ignorando mayúsculas/minúsculas.
+     *
+     * @param email email del usuario
+     * @return {@code true} si existe un usuario con ese email
+     */
+    boolean existsByEmailIgnoreCase(String email);
+
+    /**
      * Recupera un usuario por su email.
      *
      * @param email email del usuario
@@ -46,11 +54,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     /**
-     * Recupera usuarios paginados.
+     * Recupera usuarios paginados cargando roles y perfil en la misma consulta.
      *
      * @param pageable información de paginación y ordenación
      * @return página de usuarios
      */
+    @Override
+    @EntityGraph(attributePaths = {"roles", "profile"})
     Page<User> findAll(Pageable pageable);
 
     /**
@@ -72,6 +82,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdWithProfile(@Param("id") Long id);
 
     /**
+     * Recupera un usuario por id con sus roles y perfil en una sola carga.
+     * Se usa en operaciones de borrado para que Hibernate gestione correctamente
+     * la tabla intermedia de roles y la relación 1:1 con UserProfile.
+     *
+     * @param id identificador del usuario
+     * @return Optional con el usuario cargado junto a roles y perfil
+     */
+    @EntityGraph(attributePaths = {"roles", "profile"})
+    Optional<User> findWithRolesAndProfileById(Long id);
+
+    /**
      * Comprueba si existe algún {@link User} con el email indicado,
      * excluyendo al usuario cuyo identificador se pasa como parámetro.
      * <p>
@@ -86,7 +107,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmailAndIdNot(String email, Long id);
 
+    /**
+     * Comprueba si existe algún {@link User} con el email indicado,
+     * excluyendo al usuario cuyo identificador se pasa como parámetro
+     * e ignorando mayúsculas/minúsculas.
+     *
+     * @param email email a comprobar
+     * @param id identificador del usuario que debe excluirse de la búsqueda
+     * @return {@code true} si existe otro usuario con ese email,
+     *         {@code false} en caso contrario
+     */
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+
     @EntityGraph(attributePaths = {"roles", "profile"})
     List<User> findDistinctByRolesNameOrderByIdAsc(String roleName);
+
+    @EntityGraph(attributePaths = {"roles", "profile"})
+    Page<User> findDistinctByRolesName(String roleName, Pageable pageable);
 
 }
