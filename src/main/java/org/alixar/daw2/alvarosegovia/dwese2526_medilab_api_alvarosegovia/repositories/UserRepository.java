@@ -26,6 +26,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param email email del usuario (usado como identificador/username del sistema).
      * @return {@link Optional} con el usuario y sus roles; {@code Optional.empty()} si no existe.
      */
+    @EntityGraph(attributePaths = {"roles", "profile"})
     Optional<User> findByEmailIgnoreCase(String email);
 
     /**
@@ -43,15 +44,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return {@code true} si existe un usuario con ese email
      */
     boolean existsByEmailIgnoreCase(String email);
-
-    /**
-     * Recupera un usuario por su email.
-     *
-     * @param email email del usuario
-     * @return un {@link Optional} con el usuario si existe
-     */
-    @EntityGraph(attributePaths = "roles")
-    Optional<User> findByEmail(String email);
 
     /**
      * Recupera usuarios paginados cargando roles y perfil en la misma consulta.

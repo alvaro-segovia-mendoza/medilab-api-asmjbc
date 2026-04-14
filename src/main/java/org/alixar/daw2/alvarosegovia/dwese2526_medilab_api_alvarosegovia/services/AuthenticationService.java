@@ -1,5 +1,6 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthRefreshRequestDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthRequestDTO;
@@ -12,7 +13,6 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ResourceNotFoundException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.PasswordResetTokenRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.utils.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,26 +36,31 @@ public class AuthenticationService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final UserService userService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final MailService mailService;
+    private final AppUrlService appUrlService;
+
     @Value("${app.auth.reset-token-expiration-minutes:30}")
     private long resetTokenExpirationMinutes;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private AppUrlService appUrlService;
+    public AuthenticationService(
+            AuthenticationManager authenticationManager,
+            JwtUtil jwtUtil,
+            UserService userService,
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            MailService mailService,
+            AppUrlService appUrlService
+    ) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.userService = userService;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.mailService = mailService;
+        this.appUrlService = appUrlService;
+    }
 
     public AuthResponseDTO authenticate(AuthRequestDTO authRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -78,7 +83,12 @@ public class AuthenticationService {
 
     public AuthResponseDTO refresh(AuthRefreshRequestDTO request) {
         String refreshToken = request.getRefreshToken();
-        String username = jwtUtil.extractUsername(refreshToken);
+        String username;
+        try {
+            username = jwtUtil.extractUsername(refreshToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new IllegalArgumentException("Refresh token inválido o expirado");
+        }
         User user = userService.getByEmail(username);
 
         if (!jwtUtil.validateRefreshToken(refreshToken, user.getEmail())) {

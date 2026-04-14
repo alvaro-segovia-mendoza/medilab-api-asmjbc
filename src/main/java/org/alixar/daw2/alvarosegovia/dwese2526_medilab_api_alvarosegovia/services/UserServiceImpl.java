@@ -17,6 +17,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.reposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,6 +137,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            userRepository.findByEmailIgnoreCase(auth.getName())
+                    .filter(current -> current.getId().equals(id))
+                    .ifPresent(u -> { throw new IllegalArgumentException("No puedes eliminar tu propia cuenta."); });
+        }
         User user = userRepository.findWithRolesAndProfileById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", id));
 
@@ -194,7 +202,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getByEmail(String email) {
         String normalizedEmail = normalizeEmail(email);
-        return userRepository.findByEmail(normalizedEmail)
+        return userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "email", normalizedEmail));
     }
 

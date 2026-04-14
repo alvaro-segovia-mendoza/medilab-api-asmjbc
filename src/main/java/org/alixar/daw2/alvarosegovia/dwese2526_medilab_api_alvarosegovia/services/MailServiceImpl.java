@@ -2,7 +2,6 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.servic
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,26 +25,9 @@ import java.util.Map;
 @Service
 public class MailServiceImpl implements MailService {
 
-
-    /**
-     * Cliente SMTP de Spring (crea y envía mensajes Mime).
-     */
-    @Autowired
-    private JavaMailSender mailSender;
-
-
-    /**
-     * Fuente de mensajes para i18n (asuntos y textos por claves).
-     */
-    @Autowired
-    private MessageSource messageSource;
-
-
-    /**
-     * Motor de plantillas Thymeleaf para renderizar HTML desde templates.
-     */
-    @Autowired
-    private SpringTemplateEngine templateEngine;
+    private final JavaMailSender mailSender;
+    private final MessageSource messageSource;
+    private final SpringTemplateEngine templateEngine;
 
 
     /**
@@ -54,6 +36,16 @@ public class MailServiceImpl implements MailService {
      */
     @Value("${spring.mail.from:}")
     private String defaultFrom;
+
+    public MailServiceImpl(
+            JavaMailSender mailSender,
+            MessageSource messageSource,
+            SpringTemplateEngine templateEngine
+    ) {
+        this.mailSender = mailSender;
+        this.messageSource = messageSource;
+        this.templateEngine = templateEngine;
+    }
 
 
     /**
@@ -102,16 +94,12 @@ public class MailServiceImpl implements MailService {
                              String templateName,
                              Map<String, Object> variables,
                              Locale locale) {
-
-
         String subject = messageSource.getMessage(subjectKey, null, locale);
-
 
         Context ctx = new Context(locale);
         ctx.setVariables(variables);
         ctx.setVariable("subject", subject);
         ctx.setVariable("lang", locale.getLanguage());
-
 
         String html = templateEngine.process(templateName, ctx);
         send(to, subject, html, true);
@@ -132,23 +120,17 @@ public class MailServiceImpl implements MailService {
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, StandardCharsets.UTF_8.name());
 
-
             if (defaultFrom != null && !defaultFrom.isBlank()) {
                 helper.setFrom(defaultFrom);
             }
-
 
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, isHtml);
 
-
             mailSender.send(msg);
-
-
         } catch (MessagingException e) {
             throw new IllegalStateException("Email could not be sent.", e);
         }
     }
 }
-

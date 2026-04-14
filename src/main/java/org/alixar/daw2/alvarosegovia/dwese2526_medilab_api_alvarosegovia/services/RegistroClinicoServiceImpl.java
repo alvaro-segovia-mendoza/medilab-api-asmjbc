@@ -251,7 +251,7 @@ public class RegistroClinicoServiceImpl implements RegistroClinicoService {
             throw new IllegalStateException("No hay usuario autenticado en el contexto de seguridad.");
         }
 
-        return userRepository.findByEmail(authentication.getName())
+        return userRepository.findByEmailIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("user", "email", authentication.getName()));
     }
 

@@ -39,7 +39,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public UserProfileDTO getFormByEmail(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "email", email));
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(user.getId());
@@ -65,7 +65,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 
         // 1) Fuente de verdad: user por email (NO confiar en userId/email del cliente)
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "email", email));
 
 

@@ -1,13 +1,12 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ApiErrorDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.filters.JwtAuthenticationFilter;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CustomUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,13 +49,11 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:4200}")
     private String allowedOrigins;
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     /**
      * Configura el filtro de seguridad para las solicitudes HTTP, especificando las
@@ -68,12 +65,15 @@ public class SecurityConfig {
      */
     @Bean
     @Order(2)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CorsConfigurationSource corsConfigurationSource,
+            ObjectMapper objectMapper
+    ) throws Exception {
         logger.info("Entrando en el método securityFilterChain");
 
-        // Configuración de seguridad
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(formLogin -> formLogin.disable())
@@ -87,7 +87,8 @@ public class SecurityConfig {
                                                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                                                 "Debes autenticarte para acceder a este recurso",
                                                 request.getRequestURI()
-                                        )
+                                        ),
+                                        objectMapper
                                 ))
                         .accessDeniedHandler((request, response, accessDeniedException) ->
                                 writeApiError(
@@ -97,7 +98,8 @@ public class SecurityConfig {
                                                 HttpStatus.FORBIDDEN.getReasonPhrase(),
                                                 "No tienes permisos para acceder a este recurso",
                                                 request.getRequestURI()
-                                        )
+                                        ),
+                                        objectMapper
                                 ))
                 )
                 .authorizeHttpRequests(auth -> auth
@@ -141,8 +143,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/**").hasAnyRole("TECNICO", "MEDICO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/historiales-clinicos/pacientes/*").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
 
-                        // Dejamos pasar rutas no mapeadas para que el dispatcher
-                        // devuelva 404 y el frontend pueda decidir qué página mostrar.
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -171,14 +171,14 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain swaggerChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain swaggerChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
                 .securityMatcher(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
                         "/login","/logout")
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
@@ -208,7 +208,12 @@ public class SecurityConfig {
         return source;
     }
 
-    private void writeApiError(HttpServletResponse response, ApiErrorDTO body) throws IOException {
+    @Bean
+    public ObjectMapper objectMapper() {
+        return JsonMapper.builder().findAndAddModules().build();
+    }
+
+    private void writeApiError(HttpServletResponse response, ApiErrorDTO body, ObjectMapper objectMapper) throws IOException {
         response.setStatus(body.getStatus());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");

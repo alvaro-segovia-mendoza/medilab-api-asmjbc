@@ -4,7 +4,6 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,19 +32,18 @@ import java.util.stream.Collectors;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-
     private static final Logger log = LoggerFactory.getLogger(CustomUserDetailsService.class);
+    private final UserRepository userRepository;
 
-
-    @Autowired
-    private UserRepository userRepository;
-
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Carga los detalles de autenticación/autorización del usuario a partir del "username".
      *
      * <p>En este proyecto {@code username == email}, por lo que se consulta
-     * {@link UserRepository#findByEmail(String)}.</p>
+     * {@link UserRepository#findByEmailIgnoreCase(String)}.</p>
      *
      * <p>Devuelve un {@link UserDetails} con:
      * <ul>
@@ -65,17 +63,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Log de entrada (sin datos sensibles; el email es aceptable en muchos entornos,
         // aunque en producción a veces se enmascara).
         log.debug("Entrando en loadUserByUsername(username={})", username);
-
-
         final String email = username;
-
-
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> {
                     log.warn("No se encontró usuario con email={}", email);
                     return new UsernameNotFoundException("Usuario no encontrado: " + email);
                 });
-
 
         // Construimos el UserDetails de Spring Security.
         // OJO: nunca loguear contraseñas ni hashes.
@@ -96,7 +89,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .disabled(!user.isActive())
                 .build();
 
-
         // Log de salida
         log.debug("Saliendo de loadUserByUsername(email={}) -> authorities={}",
                 user.getEmail(),
@@ -109,8 +101,3 @@ public class CustomUserDetailsService implements UserDetailsService {
         return userDetails;
     }
 }
-
-
-
-
-
