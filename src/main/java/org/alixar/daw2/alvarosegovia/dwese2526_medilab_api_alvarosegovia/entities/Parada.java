@@ -31,6 +31,9 @@ public class Parada {
     @Column(name = "municipio", nullable = false, length = 100)
     private String municipio;
 
+    @Column(name = "provincia", nullable = false, length = 100)
+    private String provincia;
+
     @Column(name = "direccion", length = 150)
     private String direccion;
 

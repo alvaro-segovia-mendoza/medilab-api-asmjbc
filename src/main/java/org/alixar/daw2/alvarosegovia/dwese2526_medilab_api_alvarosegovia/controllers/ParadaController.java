@@ -9,6 +9,10 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.Par
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ParadaUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.ParadaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +31,14 @@ public class ParadaController {
     private ParadaService paradaService;
 
     @GetMapping
-    @Operation(summary = "Listar paradas", description = "Devuelve todas las paradas.")
-    public ResponseEntity<List<ParadaDTO>> list() {
-        return ResponseEntity.ok(paradaService.list());
+    @Operation(summary = "Listar paradas", description = "Devuelve las paradas paginadas y ordenables.")
+    public ResponseEntity<Page<ParadaDTO>> list(
+            @PageableDefault(size = 10, sort = "fecha", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(paradaService.listPaged(pageable));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Detalle de parada", description = "Devuelve el detalle de una parada.")
+    @Operation(summary = "Detalle de parada", description = "Devuelve el detalle operativo de una parada, incluyendo municipio y provincia.")
     public ResponseEntity<ParadaDTO> getDetail(@PathVariable Long id) {
         return ResponseEntity.ok(paradaService.getDetail(id));
     }
@@ -51,13 +56,13 @@ public class ParadaController {
     }
 
     @GetMapping("/{id}/slots-disponibles")
-    @Operation(summary = "Consultar slots disponibles", description = "Calcula los slots disponibles de una parada según su ventana horaria y la disponibilidad real de técnicos.")
+    @Operation(summary = "Consultar slots disponibles", description = "Devuelve la disponibilidad agregada de una parada a partir de slots persistidos. Cada franja incluye los `slotIdsDisponibles` que pueden reservarse.")
     public ResponseEntity<DisponibilidadParadaDTO> getDisponibilidad(@PathVariable Long id) {
         return ResponseEntity.ok(paradaService.getDisponibilidad(id));
     }
 
     @PostMapping
-    @Operation(summary = "Crear parada", description = "Crea una nueva parada para una ruta.")
+    @Operation(summary = "Crear parada", description = "Crea una nueva parada para una ruta y genera automáticamente sus slots reservables.")
     public ResponseEntity<ParadaDTO> create(@Valid @RequestBody ParadaCreateDTO dto) {
         ParadaDTO created = paradaService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.getId()).toUri();
@@ -65,7 +70,7 @@ public class ParadaController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar parada", description = "Actualiza una parada existente.")
+    @Operation(summary = "Actualizar parada", description = "Actualiza una parada existente. Si cambia la planificación horaria o la capacidad, se regeneran los slots siempre que no existan citas activas asociadas.")
     public ResponseEntity<ParadaDTO> update(@PathVariable Long id, @Valid @RequestBody ParadaUpdateDTO dto) {
         dto.setId(id);
         return ResponseEntity.ok(paradaService.update(dto));

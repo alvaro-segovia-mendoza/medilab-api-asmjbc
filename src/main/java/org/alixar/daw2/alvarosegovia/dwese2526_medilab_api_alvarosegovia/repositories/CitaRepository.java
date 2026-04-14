@@ -4,6 +4,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,13 +24,22 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     Page<Cita> findByDoctorId(Long doctorId, Pageable pageable);
 
-    long countByParadaIdAndFechaHoraAndEstadoIn(Long paradaId,
-                                                LocalDateTime fechaHora,
-                                                List<Cita.EstadoCita> estados);
+    boolean existsByTecnicoIdAndEstadoInAndSlotFechaHoraInicioAfterAndSlotFechaHoraInicioBefore(Long tecnicoId,
+                                                                                                 List<Cita.EstadoCita> estados,
+                                                                                                 LocalDateTime lowerBoundExclusive,
+                                                                                                 LocalDateTime upperBoundExclusive);
 
-    boolean existsByTecnicoIdAndEstadoInAndFechaHoraAfterAndFechaHoraBefore(Long tecnicoId,
-                                                                            List<Cita.EstadoCita> estados,
-                                                                            LocalDateTime lowerBoundExclusive,
-                                                                            LocalDateTime upperBoundExclusive);
+    boolean existsByTecnicoIdAndEstadoInAndSlotFechaHoraInicioAfterAndSlotFechaHoraInicioBeforeAndIdNot(Long tecnicoId,
+                                                                                                          List<Cita.EstadoCita> estados,
+                                                                                                          LocalDateTime lowerBoundExclusive,
+                                                                                                          LocalDateTime upperBoundExclusive,
+                                                                                                          Long citaId);
+
+    boolean existsBySlotParadaIdAndEstadoIn(Long paradaId, List<Cita.EstadoCita> estados);
+
+    @Query("SELECT c FROM Cita c WHERE (:estado IS NULL OR c.estado = :estado) AND (:pacienteId IS NULL OR c.paciente.id = :pacienteId)")
+    Page<Cita> findByFilters(@Param("estado") Cita.EstadoCita estado,
+                             @Param("pacienteId") Long pacienteId,
+                             Pageable pageable);
 
 }

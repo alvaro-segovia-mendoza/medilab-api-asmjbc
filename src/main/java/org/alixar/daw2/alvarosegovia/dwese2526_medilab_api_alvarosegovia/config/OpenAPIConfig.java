@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Medilab API",
                 version = "1.0",
-                description = "API para gestión de trailers, rutas, paradas, citas, registros clínicos e historial médico"
+                description = "API para gestion de trailers, rutas, paradas operativas, slots reservables, citas, registros clinicos e historial medico"
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )

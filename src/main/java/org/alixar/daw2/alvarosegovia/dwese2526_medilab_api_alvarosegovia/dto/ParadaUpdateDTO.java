@@ -1,5 +1,6 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -16,7 +17,9 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(description = "Datos necesarios para actualizar una parada operativa.")
 public class ParadaUpdateDTO {
+    @Schema(description = "Identificador de la parada.", example = "1")
     @NotNull(message = "{msg.parada.id.notNull}")
     private Long id;
 
@@ -31,6 +34,11 @@ public class ParadaUpdateDTO {
     @Size(max = 100, message = "{msg.parada.municipio.size}")
     private String municipio;
 
+    @Schema(description = "Provincia de la parada.", example = "Sevilla")
+    @NotBlank(message = "{msg.parada.provincia.notBlank}")
+    @Size(max = 100, message = "{msg.parada.provincia.size}")
+    private String provincia;
+
     @Size(max = 150, message = "{msg.parada.direccion.size}")
     private String direccion;
 
@@ -40,10 +48,8 @@ public class ParadaUpdateDTO {
     @NotNull(message = "{msg.parada.fecha.notNull}")
     private LocalDate fecha;
 
-    @NotNull(message = "{msg.parada.horaInicio.notNull}")
     private LocalTime horaInicio;
 
-    @NotNull(message = "{msg.parada.horaFin.notNull}")
     private LocalTime horaFin;
 
     @NotNull(message = "{msg.parada.capacidadMaxima.notNull}")

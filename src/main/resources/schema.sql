@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS registros_clinicos;
 DROP TABLE IF EXISTS password_reset_tokens;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS cita;
+DROP TABLE IF EXISTS slot_cita;
 DROP TABLE IF EXISTS paradas;
 DROP TABLE IF EXISTS rutas;
 DROP TABLE IF EXISTS trailers;
@@ -108,6 +109,7 @@ CREATE TABLE paradas (
     ruta_id BIGINT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     municipio VARCHAR(100) NOT NULL,
+    provincia VARCHAR(100) NOT NULL,
     direccion VARCHAR(150) NULL,
     orden_parada INT NOT NULL,
     fecha DATE NOT NULL,
@@ -125,6 +127,27 @@ CREATE TABLE paradas (
     INDEX idx_parada_ruta_id (ruta_id),
     INDEX idx_parada_fecha (fecha),
     INDEX idx_parada_activa (activa)
+);
+
+CREATE TABLE slot_cita (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    parada_id BIGINT NOT NULL,
+    fecha_hora_inicio DATETIME NOT NULL,
+    fecha_hora_fin DATETIME NOT NULL,
+    cupo_numero INT NOT NULL,
+    estado ENUM('DISPONIBLE','RESERVADO','NO_DISPONIBLE') NOT NULL DEFAULT 'DISPONIBLE',
+
+    CONSTRAINT fk_slot_parada
+        FOREIGN KEY (parada_id)
+        REFERENCES paradas(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT uq_slot_parada_inicio_cupo UNIQUE (parada_id, fecha_hora_inicio, cupo_numero),
+
+    INDEX idx_slot_parada_id (parada_id),
+    INDEX idx_slot_inicio (fecha_hora_inicio),
+    INDEX idx_slot_estado (estado)
 );
 
 -- =========================================
@@ -184,14 +207,13 @@ CREATE TABLE password_reset_tokens (
 
 CREATE TABLE cita (
     id_cita BIGINT AUTO_INCREMENT PRIMARY KEY,
-    fecha_hora DATETIME NOT NULL,
     tipo_prueba VARCHAR(50) NOT NULL,
     estado ENUM('PENDIENTE','CONFIRMADA','RESULTADOS_SUBIDOS','RESULTADOS_APROBADOS','CANCELADA') NOT NULL DEFAULT 'PENDIENTE',
 
     paciente_id BIGINT NOT NULL,
     tecnico_id BIGINT NULL,
     doctor_id BIGINT NULL,
-    parada_id BIGINT NOT NULL,
+    slot_id BIGINT NOT NULL,
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -214,18 +236,18 @@ CREATE TABLE cita (
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    CONSTRAINT fk_cita_parada
-        FOREIGN KEY (parada_id)
-        REFERENCES paradas(id)
+    CONSTRAINT fk_cita_slot
+        FOREIGN KEY (slot_id)
+        REFERENCES slot_cita(id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    INDEX idx_cita_fecha_hora (fecha_hora),
     INDEX idx_cita_estado (estado),
     INDEX idx_cita_paciente_id (paciente_id),
     INDEX idx_cita_tecnico_id (tecnico_id),
     INDEX idx_cita_doctor_id (doctor_id),
-    INDEX idx_cita_parada_id (parada_id)
+    INDEX idx_cita_slot_id (slot_id),
+    CONSTRAINT uq_cita_slot UNIQUE (slot_id)
 );
 
 CREATE TABLE registros_clinicos (

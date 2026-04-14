@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 /**
  * La clase `Cita` representa una cita en el laboratorio médico.
  * Contiene campos como `fechaHora`, `tipoPrueba`, `estado` y el `tecnico` asociado.
@@ -36,9 +34,6 @@ public class Cita {
     @Column(name = "id_cita")
     private Long id;
 
-    @Column(name = "fecha_hora", nullable = false)
-    private LocalDateTime fechaHora;
-
     @Column(name = "tipo_prueba", nullable = false, length = 50)
     private String tipoPrueba;
 
@@ -59,12 +54,12 @@ public class Cita {
     private User doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parada_id", nullable = false)
-    private Parada parada;
+    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    private SlotCita slot;
 
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private java.time.LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
-    private LocalDateTime updatedAt;
+    private java.time.LocalDateTime updatedAt;
 }

@@ -9,6 +9,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.excepti
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers.TrailerMapper;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TrailerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,11 @@ public class TrailerServiceImpl implements TrailerService {
     @Override
     public List<TrailerDTO> list() {
         return TrailerMapper.toDTOList(trailerRepository.findAll());
+    }
+
+    @Override
+    public Page<TrailerDTO> listPaged(Pageable pageable) {
+        return trailerRepository.findAll(pageable).map(TrailerMapper::toDTO);
     }
 
     @Override

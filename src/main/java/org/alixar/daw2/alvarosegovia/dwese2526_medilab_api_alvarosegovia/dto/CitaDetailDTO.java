@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class CitaDetailDTO {
 
     private Long id;
+    private Long slotId;
     private LocalDateTime fechaHora;
     private String tipoPrueba;
     private Cita.EstadoCita estadoCita;

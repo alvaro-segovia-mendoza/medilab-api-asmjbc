@@ -10,6 +10,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TrailerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,11 @@ public class RutaServiceImpl implements RutaService {
     @Override
     public List<RutaDTO> list() {
         return RutaMapper.toDTOList(rutaRepository.findAll());
+    }
+
+    @Override
+    public Page<RutaDTO> listPaged(Pageable pageable) {
+        return rutaRepository.findAll(pageable).map(RutaMapper::toDTO);
     }
 
     @Override

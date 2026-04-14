@@ -8,6 +8,10 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.Rut
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RutaUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.RutaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,9 +28,10 @@ public class RutaController {
     private RutaService rutaService;
 
     @GetMapping
-    @Operation(summary = "Listar rutas", description = "Devuelve todas las rutas.")
-    public ResponseEntity<List<RutaDTO>> list() {
-        return ResponseEntity.ok(rutaService.list());
+    @Operation(summary = "Listar rutas", description = "Devuelve las rutas paginadas y ordenables.")
+    public ResponseEntity<Page<RutaDTO>> list(
+            @PageableDefault(size = 10, sort = "nombre", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(rutaService.listPaged(pageable));
     }
 
     @GetMapping("/activas")

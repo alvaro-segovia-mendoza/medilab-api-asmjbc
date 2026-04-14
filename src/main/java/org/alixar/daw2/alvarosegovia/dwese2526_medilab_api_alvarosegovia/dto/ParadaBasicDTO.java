@@ -16,6 +16,7 @@ public class ParadaBasicDTO {
     private Long id;
     private String nombre;
     private String municipio;
+    private String provincia;
     private LocalDate fecha;
     private LocalTime horaInicio;
     private LocalTime horaFin;
