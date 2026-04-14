@@ -43,11 +43,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authorizationHeader.substring(7);
-        username = jwtUtil.extractUsername(jwt);
+
+        try {
+            username = jwtUtil.extractUsername(jwt);
+        } catch (Exception ex) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+            if (jwtUtil.validateAccessToken(jwt, userDetails.getUsername())) {
                 Claims claims = jwtUtil.extractAllClaims(jwt);
                 List<String> roles = claims.get("roles", List.class);
                 List<SimpleGrantedAuthority> authorities = roles.stream()
