@@ -1,16 +1,11 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class AuthRequestDTO {
+public class AuthRefreshRequestDTO {
 
     @NotBlank
-    @Email
-    private String email;
-
-    @NotBlank
-    private String password;
+    private String refreshToken;
 }

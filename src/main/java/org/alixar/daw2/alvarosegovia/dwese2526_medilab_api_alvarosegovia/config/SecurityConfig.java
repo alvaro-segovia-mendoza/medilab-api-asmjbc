@@ -1,10 +1,14 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ApiErrorDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.filters.JwtAuthenticationFilter;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CustomUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,8 +21,17 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Configura la seguridad de la aplicación, definiendo autenticación y autorización
@@ -29,13 +42,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final List<String> DEFAULT_ALLOWED_METHODS = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+    private static final List<String> DEFAULT_ALLOWED_HEADERS = List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With");
+
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
+    @Value("${app.cors.allowed-origins:http://localhost:4200}")
+    private String allowedOrigins;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Configura el filtro de seguridad para las solicitudes HTTP, especificando las
@@ -52,27 +73,42 @@ public class SecurityConfig {
 
         // Configuración de seguridad
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(basic -> basic.disable())
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(403);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Forbidden\"}");
-                        })
+                        .authenticationEntryPoint((request, response, authException) ->
+                                writeApiError(
+                                        response,
+                                        ApiErrorDTO.basic(
+                                                HttpStatus.UNAUTHORIZED.value(),
+                                                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                                                "Debes autenticarte para acceder a este recurso",
+                                                request.getRequestURI()
+                                        )
+                                ))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                writeApiError(
+                                        response,
+                                        ApiErrorDTO.basic(
+                                                HttpStatus.FORBIDDEN.value(),
+                                                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                                                "No tienes permisos para acceder a este recurso",
+                                                request.getRequestURI()
+                                        )
+                                ))
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error", "/error/**").permitAll()
+                        .requestMatchers("/", "/login", "/logout").permitAll()
+                        .requestMatchers("/users/**").authenticated()
 
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/roles/**").hasRole("ADMIN")
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/rutas/activas").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/paradas/ruta/*").authenticated()
@@ -105,7 +141,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/**").hasAnyRole("TECNICO", "MEDICO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/historiales-clinicos/pacientes/*").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
 
-                        .anyRequest().authenticated()
+                        // Dejamos pasar rutas no mapeadas para que el dispatcher
+                        // devuelva 404 y el frontend pueda decidir qué página mostrar.
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -140,6 +178,7 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
                         "/login","/logout")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
@@ -149,5 +188,30 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList());
+        configuration.setAllowedMethods(DEFAULT_ALLOWED_METHODS);
+        configuration.setAllowedHeaders(DEFAULT_ALLOWED_HEADERS);
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    private void writeApiError(HttpServletResponse response, ApiErrorDTO body) throws IOException {
+        response.setStatus(body.getStatus());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), body);
     }
 }

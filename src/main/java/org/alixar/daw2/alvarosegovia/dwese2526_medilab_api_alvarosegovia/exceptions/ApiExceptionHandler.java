@@ -2,6 +2,7 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.except
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ApiErrorDTO;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,6 +13,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,6 +42,24 @@ public class ApiExceptionHandler {
                 ex.getResource(),
                 ex.getField(),
                 ex.getValue()
+        );
+
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Ruta no existente -> 404 Not Found.
+     */
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public ResponseEntity<ApiErrorDTO> handleMissingRoute(Exception ex, HttpServletRequest req) {
+
+
+        ApiErrorDTO body = ApiErrorDTO.basic(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                "El recurso solicitado no existe",
+                req.getRequestURI()
         );
 
 
@@ -147,6 +168,25 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    /**
+     * Restricciones de integridad de datos no capturadas previamente -> 409 Conflict.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex,
+                                                                    HttpServletRequest req) {
+
+
+        ApiErrorDTO body = ApiErrorDTO.basic(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                "Conflicto de integridad de datos: ya existe un valor que no puede repetirse.",
+                req.getRequestURI()
+        );
+
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
 
     /**
      * Cualquier error no controlado -> 500 Internal Server Error.
@@ -172,12 +212,20 @@ public class ApiExceptionHandler {
     @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
     public ResponseEntity<ApiErrorDTO> handleAuth(AuthenticationException ex, HttpServletRequest req) {
 
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        fieldErrors.put("email", "El correo electrónico o la contraseña no son válidos");
+        fieldErrors.put("password", "El correo electrónico o la contraseña no son válidos");
 
-        ApiErrorDTO body = ApiErrorDTO.basic(
+        ApiErrorDTO body = new ApiErrorDTO(
+                java.time.Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "Credenciales inválidas",
-                req.getRequestURI()
+                "El correo electrónico o la contraseña no coinciden",
+                req.getRequestURI(),
+                null,
+                null,
+                null,
+                fieldErrors
         );
 
 
