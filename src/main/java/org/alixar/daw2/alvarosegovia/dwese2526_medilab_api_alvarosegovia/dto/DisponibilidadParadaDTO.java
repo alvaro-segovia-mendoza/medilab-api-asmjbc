@@ -15,6 +15,7 @@ public class DisponibilidadParadaDTO {
     private Long paradaId;
     private String paradaNombre;
     private String municipio;
+    private String provincia;
     private Integer capacidadMaxima;
     private List<SlotDisponibilidadDTO> slots;
     private List<java.time.LocalDateTime> slotsDisponibles;

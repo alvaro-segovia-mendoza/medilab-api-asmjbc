@@ -15,6 +15,7 @@ public class ParadaMapper {
                 .id(entity.getId())
                 .nombre(entity.getNombre())
                 .municipio(entity.getMunicipio())
+                .provincia(entity.getProvincia())
                 .direccion(entity.getDireccion())
                 .ordenParada(entity.getOrdenParada())
                 .fecha(entity.getFecha())
@@ -38,6 +39,7 @@ public class ParadaMapper {
                 .id(entity.getId())
                 .nombre(entity.getNombre())
                 .municipio(entity.getMunicipio())
+                .provincia(entity.getProvincia())
                 .fecha(entity.getFecha())
                 .horaInicio(entity.getHoraInicio())
                 .horaFin(entity.getHoraFin())
@@ -50,6 +52,7 @@ public class ParadaMapper {
     public static void copyToExistingEntity(ParadaUpdateDTO dto, Parada entity) {
         entity.setNombre(dto.getNombre());
         entity.setMunicipio(dto.getMunicipio());
+        entity.setProvincia(dto.getProvincia());
         entity.setDireccion(dto.getDireccion());
         entity.setOrdenParada(dto.getOrdenParada());
         entity.setFecha(dto.getFecha());

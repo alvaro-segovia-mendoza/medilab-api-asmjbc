@@ -8,12 +8,15 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.Tra
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.TrailerUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.TrailerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/trailers")
@@ -24,9 +27,10 @@ public class TrailerController {
     private TrailerService trailerService;
 
     @GetMapping
-    @Operation(summary = "Listar trailers", description = "Devuelve todos los trailers.")
-    public ResponseEntity<List<TrailerDTO>> list() {
-        return ResponseEntity.ok(trailerService.list());
+    @Operation(summary = "Listar trailers", description = "Devuelve los trailers paginados y ordenables.")
+    public ResponseEntity<Page<TrailerDTO>> list(
+            @PageableDefault(size = 10, sort = "nombre", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(trailerService.listPaged(pageable));
     }
 
     @GetMapping("/{id}")

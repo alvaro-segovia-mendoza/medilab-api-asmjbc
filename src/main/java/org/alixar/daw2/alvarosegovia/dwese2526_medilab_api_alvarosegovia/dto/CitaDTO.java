@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class CitaDTO {
 
     private Long id;
+    private Long slotId;
     private LocalDateTime fechaHora;
     private String tipoPrueba;
     private Cita.EstadoCita estadoCita;
@@ -24,6 +25,7 @@ public class CitaDTO {
     private String doctorNombre;
     private String paradaNombre;
     private String municipioParada;
+    private String provinciaParada;
     private String rutaNombre;
     private String trailerNombre;
 }

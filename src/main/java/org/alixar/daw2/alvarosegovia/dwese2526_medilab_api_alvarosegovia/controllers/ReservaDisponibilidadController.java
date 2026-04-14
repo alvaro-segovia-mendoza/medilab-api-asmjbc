@@ -26,7 +26,7 @@ public class ReservaDisponibilidadController {
     @GetMapping("/disponibilidad")
     @Operation(
             summary = "Rutas y paradas reservables",
-            description = "Devuelve las rutas activas con sus próximas paradas que aún tienen slots reservables desde una fecha dada."
+            description = "Devuelve las rutas activas con sus próximas paradas que aún tienen slots persistidos reservables desde una fecha dada."
     )
     public ResponseEntity<List<RutaReservableDTO>> getDisponibilidadReservas(
             @RequestParam(required = false)

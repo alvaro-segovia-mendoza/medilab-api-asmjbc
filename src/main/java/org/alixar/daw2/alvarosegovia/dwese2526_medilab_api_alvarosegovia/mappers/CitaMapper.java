@@ -3,8 +3,10 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mapper
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.*;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Cita;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Parada;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.SlotCita;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -20,18 +22,21 @@ public class CitaMapper {
     public static CitaDTO toDTO(Cita entity) {
         if (entity == null) return null;
 
+        Parada parada = getParada(entity);
         CitaDTO dto = new CitaDTO();
         dto.setId(entity.getId());
-        dto.setFechaHora(entity.getFechaHora());
+        dto.setSlotId(getSlotId(entity.getSlot()));
+        dto.setFechaHora(getFechaHora(entity));
         dto.setTipoPrueba(entity.getTipoPrueba());
         dto.setEstadoCita(entity.getEstado());
         dto.setPacienteNombre(getDisplayName(entity.getPaciente()));
         dto.setTecnicoNombre(getDisplayName(entity.getTecnico()));
         dto.setDoctorNombre(getDisplayName(entity.getDoctor()));
-        dto.setParadaNombre(entity.getParada() != null ? entity.getParada().getNombre() : null);
-        dto.setMunicipioParada(entity.getParada() != null ? entity.getParada().getMunicipio() : null);
-        dto.setRutaNombre(entity.getParada() != null && entity.getParada().getRuta() != null ? entity.getParada().getRuta().getNombre() : null);
-        dto.setTrailerNombre(entity.getParada() != null && entity.getParada().getRuta() != null && entity.getParada().getRuta().getTrailer() != null ? entity.getParada().getRuta().getTrailer().getNombre() : null);
+        dto.setParadaNombre(parada != null ? parada.getNombre() : null);
+        dto.setMunicipioParada(parada != null ? parada.getMunicipio() : null);
+        dto.setProvinciaParada(parada != null ? parada.getProvincia() : null);
+        dto.setRutaNombre(parada != null && parada.getRuta() != null ? parada.getRuta().getNombre() : null);
+        dto.setTrailerNombre(parada != null && parada.getRuta() != null && parada.getRuta().getTrailer() != null ? parada.getRuta().getTrailer().getNombre() : null);
 
         return dto;
     }
@@ -50,17 +55,19 @@ public class CitaMapper {
     public static CitaDetailDTO toDetailDTO(Cita entity) {
         if (entity == null) return null;
 
+        Parada parada = getParada(entity);
         CitaDetailDTO dto = new CitaDetailDTO();
         dto.setId(entity.getId());
-        dto.setFechaHora(entity.getFechaHora());
+        dto.setSlotId(getSlotId(entity.getSlot()));
+        dto.setFechaHora(getFechaHora(entity));
         dto.setTipoPrueba(entity.getTipoPrueba());
         dto.setEstadoCita(entity.getEstado());
         dto.setPaciente(toUserBasicDTO(entity.getPaciente()));
         dto.setTecnico(toUserBasicDTO(entity.getTecnico()));
         dto.setDoctor(toUserBasicDTO(entity.getDoctor()));
-        dto.setParada(ParadaMapper.toBasicDTO(entity.getParada()));
-        dto.setRutaNombre(entity.getParada() != null && entity.getParada().getRuta() != null ? entity.getParada().getRuta().getNombre() : null);
-        dto.setTrailerNombre(entity.getParada() != null && entity.getParada().getRuta() != null && entity.getParada().getRuta().getTrailer() != null ? entity.getParada().getRuta().getTrailer().getNombre() : null);
+        dto.setParada(ParadaMapper.toBasicDTO(parada));
+        dto.setRutaNombre(parada != null && parada.getRuta() != null ? parada.getRuta().getNombre() : null);
+        dto.setTrailerNombre(parada != null && parada.getRuta() != null && parada.getRuta().getTrailer() != null ? parada.getRuta().getTrailer().getNombre() : null);
 
         return dto;
     }
@@ -74,11 +81,10 @@ public class CitaMapper {
 
         CitaUpdateDTO dto = new CitaUpdateDTO();
         dto.setId(entity.getId());
-        dto.setFechaHora(entity.getFechaHora());
         dto.setTipoPrueba(entity.getTipoPrueba());
         dto.setEstadoCita(entity.getEstado());
         dto.setPacienteId(getUserId(entity.getPaciente()));
-        dto.setParadaId(getParadaId(entity.getParada()));
+        dto.setSlotId(getSlotId(entity.getSlot()));
         dto.setTecnicoId(getUserId(entity.getTecnico()));
         dto.setDoctorId(getUserId(entity.getDoctor()));
 
@@ -97,11 +103,10 @@ public class CitaMapper {
         if (dto == null) return null;
 
         Cita entity = new Cita();
-        entity.setFechaHora(dto.getFechaHora());
         entity.setTipoPrueba(dto.getTipoPrueba());
         entity.setEstado(Cita.EstadoCita.PENDIENTE);
         entity.setPaciente(toUserReference(dto.getPacienteId()));
-        entity.setParada(toParadaReference(dto.getParadaId()));
+        entity.setSlot(toSlotReference(dto.getSlotId()));
 
         return entity;
     }
@@ -115,11 +120,10 @@ public class CitaMapper {
 
         Cita entity = new Cita();
         entity.setId(dto.getId());
-        entity.setFechaHora(dto.getFechaHora());
         entity.setTipoPrueba(dto.getTipoPrueba());
         entity.setEstado(dto.getEstadoCita());
         entity.setPaciente(toUserReference(dto.getPacienteId()));
-        entity.setParada(toParadaReference(dto.getParadaId()));
+        entity.setSlot(toSlotReference(dto.getSlotId()));
         entity.setTecnico(toUserReference(dto.getTecnicoId()));
         entity.setDoctor(toUserReference(dto.getDoctorId()));
 
@@ -134,17 +138,16 @@ public class CitaMapper {
     public static void copyToExistingEntity(CitaUpdateDTO dto, Cita entity) {
         if (dto == null || entity == null) return;
 
-        entity.setFechaHora(dto.getFechaHora());
         entity.setTipoPrueba(dto.getTipoPrueba());
         entity.setEstado(dto.getEstadoCita());
         entity.setPaciente(toUserReference(dto.getPacienteId()));
-        entity.setParada(toParadaReference(dto.getParadaId()));
+        entity.setSlot(toSlotReference(dto.getSlotId()));
         entity.setTecnico(toUserReference(dto.getTecnicoId()));
         entity.setDoctor(toUserReference(dto.getDoctorId()));
     }
 
-    private static Long getParadaId(Parada parada) {
-        return parada != null ? parada.getId() : null;
+    private static Long getSlotId(SlotCita slot) {
+        return slot != null ? slot.getId() : null;
     }
 
     private static Long getUserId(User user) {
@@ -161,13 +164,21 @@ public class CitaMapper {
         return user;
     }
 
-    private static Parada toParadaReference(Long id) {
+    private static SlotCita toSlotReference(Long id) {
         if (id == null) {
             return null;
         }
-        Parada parada = new Parada();
-        parada.setId(id);
-        return parada;
+        SlotCita slot = new SlotCita();
+        slot.setId(id);
+        return slot;
+    }
+
+    private static LocalDateTime getFechaHora(Cita cita) {
+        return cita != null && cita.getSlot() != null ? cita.getSlot().getFechaHoraInicio() : null;
+    }
+
+    private static Parada getParada(Cita cita) {
+        return cita != null && cita.getSlot() != null ? cita.getSlot().getParada() : null;
     }
 
     private static UserBasicDTO toUserBasicDTO(User user) {

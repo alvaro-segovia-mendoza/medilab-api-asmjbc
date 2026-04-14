@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.*;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Cita;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CitaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -36,19 +39,30 @@ public class CitaController {
 
     /**
      * Lista paginada de citas en JSON.
+     * Para administradores, acepta filtros opcionales por estado y pacienteId.
      */
     @GetMapping
-    @Operation(summary = "Listar citas", description = "Devuelve las citas visibles para el usuario autenticado en formato paginado.")
+    @Operation(summary = "Listar citas", description = "Devuelve las citas visibles para el usuario autenticado en formato paginado. El admin puede filtrar por estado y pacienteId. La ordenación por defecto se realiza por la fecha y hora de inicio del slot reservado.")
     public ResponseEntity<Page<CitaDTO>> getCitas(
-            @PageableDefault(size = 10, sort = "fechaHora", direction = Sort.Direction.ASC) Pageable pageable) {
+            @RequestParam(required = false) Cita.EstadoCita estado,
+            @RequestParam(required = false) Long pacienteId,
+            @PageableDefault(size = 10, sort = "slot.fechaHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 
         logger.info("Listando citas (REST) page={}, size={}, sort={}", pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
 
-        Page<CitaDTO> page = citaService.list(pageable);
+        Page<CitaDTO> page = isAdmin() && (estado != null || pacienteId != null)
+                ? citaService.listAdmin(estado, pacienteId, pageable)
+                : citaService.list(pageable);
 
         logger.info("Se han cargado {} citas en la página {}.", page.getNumberOfElements(), page.getNumber());
 
         return ResponseEntity.ok(page);
+    }
+
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @GetMapping("/all")
@@ -62,7 +76,7 @@ public class CitaController {
      * Devuelve el detalle de una cita por ID en JSON.
      */
     @GetMapping("/{id}")
-    @Operation(summary = "Detalle de cita", description = "Devuelve una cita con paciente, técnico, médico, parada, ruta y trailer.")
+    @Operation(summary = "Detalle de cita", description = "Devuelve una cita con paciente, técnico, médico, slot reservado, parada, ruta y trailer.")
     public ResponseEntity<CitaDetailDTO> getCitaById(@PathVariable Long id) {
 
         logger.info("Retornando cita de id {}", id);
@@ -76,10 +90,10 @@ public class CitaController {
      * Crea una nueva cita.
      */
     @PostMapping
-    @Operation(summary = "Reservar cita", description = "Reserva una cita en una parada concreta y asigna automáticamente un técnico disponible.")
+    @Operation(summary = "Reservar cita", description = "Reserva una cita sobre un slot concreto (`slotId`) y asigna automáticamente un técnico disponible.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Cita creada"),
-            @ApiResponse(responseCode = "400", description = "Parada o franja horaria inválida")
+            @ApiResponse(responseCode = "400", description = "Slot no disponible o inconsistencia operativa")
     })
     public ResponseEntity<CitaDTO> createCita(@Valid @RequestBody CitaCreateDTO dto) {
 
@@ -100,7 +114,7 @@ public class CitaController {
      * Actualiza una cita existente.
      */
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar cita", description = "Actualiza una cita existente.")
+    @Operation(summary = "Actualizar cita", description = "Actualiza una cita existente y permite moverla a otro slot disponible.")
     public ResponseEntity<CitaDTO> updateCita(@PathVariable Long id,
                                                       @Valid @RequestBody CitaUpdateDTO dto) {
 
