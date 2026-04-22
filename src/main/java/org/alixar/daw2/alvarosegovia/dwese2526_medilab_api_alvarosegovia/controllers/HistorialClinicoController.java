@@ -2,8 +2,8 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.contro
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.HistorialClinicoDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.HistorialClinicoService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.HistorialClinicoDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.clinical.HistorialClinicoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

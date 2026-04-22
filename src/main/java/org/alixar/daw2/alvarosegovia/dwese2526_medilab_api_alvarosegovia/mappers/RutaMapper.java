@@ -1,6 +1,6 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers;
 
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RutaDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.RutaDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Ruta;
 
 import java.util.List;

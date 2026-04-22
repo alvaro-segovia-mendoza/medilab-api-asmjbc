@@ -3,11 +3,11 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.contro
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.CitaDetailDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RegistroClinicoCreateDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RegistroClinicoDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CitaService;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.RegistroClinicoService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.CitaDetailDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.RegistroClinicoCreateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.RegistroClinicoDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.clinical.CitaService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.clinical.RegistroClinicoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

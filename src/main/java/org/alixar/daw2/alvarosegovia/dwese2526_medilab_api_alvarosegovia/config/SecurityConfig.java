@@ -1,10 +1,8 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import jakarta.servlet.http.HttpServletResponse;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ApiErrorDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.filters.JwtAuthenticationFilter;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.security.RestAccessDeniedHandler;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.security.RestAuthenticationEntryPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,15 +18,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +37,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final List<String> DEFAULT_ALLOWED_METHODS = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
-    private static final List<String> DEFAULT_ALLOWED_HEADERS = List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With");
+    private static final List<String> DEFAULT_ALLOWED_HEADERS = List.of("Authorization", "Content-Type", "Accept", "Accept-Language", "Origin", "X-Requested-With");
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
@@ -50,9 +45,15 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+                          RestAccessDeniedHandler restAccessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.restAccessDeniedHandler = restAccessDeniedHandler;
     }
 
     /**
@@ -67,8 +68,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            CorsConfigurationSource corsConfigurationSource,
-            ObjectMapper objectMapper
+            CorsConfigurationSource corsConfigurationSource
     ) throws Exception {
         logger.info("Entrando en el método securityFilterChain");
 
@@ -79,33 +79,14 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(basic -> basic.disable())
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) ->
-                                writeApiError(
-                                        response,
-                                        ApiErrorDTO.basic(
-                                                HttpStatus.UNAUTHORIZED.value(),
-                                                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                                                "Debes autenticarte para acceder a este recurso",
-                                                request.getRequestURI()
-                                        ),
-                                        objectMapper
-                                ))
-                        .accessDeniedHandler((request, response, accessDeniedException) ->
-                                writeApiError(
-                                        response,
-                                        ApiErrorDTO.basic(
-                                                HttpStatus.FORBIDDEN.value(),
-                                                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                                                "No tienes permisos para acceder a este recurso",
-                                                request.getRequestURI()
-                                        ),
-                                        objectMapper
-                                ))
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error", "/error/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/", "/login", "/logout").permitAll()
                         .requestMatchers("/users/**").authenticated()
 
@@ -128,7 +109,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/citas").hasAnyRole("PACIENTE", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/citas/*/confirm").hasAnyRole("TECNICO", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/citas/*/cancel").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/citas/*/cancel").hasAnyRole("PACIENTE", "TECNICO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/citas/**").hasAnyRole("PACIENTE", "TECNICO", "MEDICO", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/citas/**").hasAnyRole("TECNICO", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/citas/**").hasRole("ADMIN")
@@ -143,7 +124,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/**").hasAnyRole("TECNICO", "MEDICO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/historiales-clinicos/pacientes/*").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
 
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reservas/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reservas/**").hasRole("ADMIN")
+
+                        .anyRequest().hasRole("ADMIN")
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -206,17 +192,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        return JsonMapper.builder().findAndAddModules().build();
-    }
-
-    private void writeApiError(HttpServletResponse response, ApiErrorDTO body, ObjectMapper objectMapper) throws IOException {
-        response.setStatus(body.getStatus());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), body);
     }
 }

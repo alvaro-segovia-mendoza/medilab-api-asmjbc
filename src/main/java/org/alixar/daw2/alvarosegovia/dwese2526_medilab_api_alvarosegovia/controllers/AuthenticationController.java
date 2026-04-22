@@ -10,14 +10,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ApiErrorDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthRequestDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthRefreshRequestDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.AuthResponseDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.PasswordResetDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.PasswordResetRequestDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RegisterRequestDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.AuthenticationService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.common.ApiErrorDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.AuthRequestDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.AuthRefreshRequestDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.AuthResponseDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.PasswordResetDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.PasswordResetRequestDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.auth.RegisterRequestDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.auth.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +52,7 @@ public class AuthenticationController {
                                               "timestamp": "2026-04-13T10:00:00Z",
                                               "status": 401,
                                               "error": "Unauthorized",
+                                              "code": "AUTH_INVALID_CREDENTIALS",
                                               "message": "El correo electrónico o la contraseña no coinciden",
                                               "path": "/api/auth/authenticate",
                                               "resource": null,
@@ -76,7 +77,9 @@ public class AuthenticationController {
     @Operation(summary = "Registrar paciente", description = "Crea un nuevo usuario paciente y devuelve access y refresh token.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Registro correcto"),
-            @ApiResponse(responseCode = "409", description = "Email ya registrado")
+            @ApiResponse(responseCode = "409", description = "Email ya registrado",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
     @SecurityRequirements
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
@@ -87,7 +90,9 @@ public class AuthenticationController {
     @Operation(summary = "Refrescar access token", description = "Emite un nuevo access token usando un refresh token válido.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Refresh correcto"),
-            @ApiResponse(responseCode = "400", description = "Refresh token inválido")
+            @ApiResponse(responseCode = "400", description = "Refresh token inválido o expirado",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
     @SecurityRequirements
     public ResponseEntity<AuthResponseDTO> refresh(@Valid @RequestBody AuthRefreshRequestDTO request) {
@@ -98,7 +103,9 @@ public class AuthenticationController {
     @Operation(summary = "Solicitar reset de contraseña", description = "Genera un token de recuperación y envía el enlace por email.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Solicitud procesada"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+            @ApiResponse(responseCode = "404", description = "No existe ninguna cuenta con ese email",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
     @SecurityRequirements
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO request,
@@ -111,7 +118,9 @@ public class AuthenticationController {
     @Operation(summary = "Restablecer contraseña", description = "Consume un token de recuperación y actualiza la contraseña del usuario.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Contraseña actualizada"),
-            @ApiResponse(responseCode = "400", description = "Token inválido o passwords no válidos")
+            @ApiResponse(responseCode = "400", description = "Token inválido, expirado o contraseñas no coinciden",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
     @SecurityRequirements
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody PasswordResetDTO request) {

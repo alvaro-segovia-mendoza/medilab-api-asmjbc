@@ -2,7 +2,7 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.except
 
 
 import lombok.Getter;
-import lombok.Setter;
+import org.springframework.http.HttpStatus;
 
 /**
  * Excepción genérica que indica que ya existe un recurso con un valor que debería ser único.
@@ -11,8 +11,7 @@ import lombok.Setter;
  * Por ejemplo: intentar crear un región con {@code code="AND"} cuando ya existe.
  */
 @Getter
-@Setter
-public class DuplicateResourceException extends RuntimeException {
+public class DuplicateResourceException extends ApiBusinessException {
 
     /**
      * Nombre del recurso/entidad en el que se ha detectado el duplicado (por ejemplo: "region", "province", "user").
@@ -38,10 +37,19 @@ public class DuplicateResourceException extends RuntimeException {
      * @param value    valor que ya existe para ese campo (ej. {@code "AND"}).
      */
     public DuplicateResourceException(String resource, String field, Object value) {
-        super("Duplicate " + resource + " (" + field + "=" + value + ")");
+        super(
+                "DUPLICATE_RESOURCE",
+                "api.error.duplicateResource",
+                HttpStatus.CONFLICT,
+                resource,
+                field,
+                value,
+                resource,
+                field,
+                value
+        );
         this.resource = resource;
         this.field = field;
         this.value = value;
     }
 }
-

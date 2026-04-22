@@ -1,0 +1,33 @@
+package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RutaUpdateDTO {
+    @NotNull(message = "{validation.logistics.ruta.id.required}")
+    private Long id;
+
+    @NotBlank(message = "{validation.logistics.ruta.nombre.required}")
+    @Size(max = 100, message = "{validation.logistics.ruta.nombre.size}")
+    private String nombre;
+
+    @Size(max = 100, message = "{validation.logistics.ruta.origen.size}")
+    private String origen;
+
+    @Size(max = 100, message = "{validation.logistics.ruta.destino.size}")
+    private String destino;
+
+    @NotNull(message = "{validation.logistics.ruta.activa.required}")
+    private Boolean activa;
+
+    private Long trailerId;
+}

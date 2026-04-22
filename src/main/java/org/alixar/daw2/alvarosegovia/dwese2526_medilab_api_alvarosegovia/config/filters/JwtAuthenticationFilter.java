@@ -6,7 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CustomUserDetailsService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.auth.CustomUserDetailsService;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.utils.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,7 +1,7 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers;
 
 import jakarta.validation.Valid;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserProfileDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserProfileDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.UserProfile;
 

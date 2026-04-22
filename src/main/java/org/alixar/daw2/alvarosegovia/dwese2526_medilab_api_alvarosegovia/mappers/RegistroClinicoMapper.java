@@ -1,7 +1,7 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers;
 
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.RegistroClinicoDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserBasicDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.RegistroClinicoDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserBasicDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.RegistroClinico;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 

@@ -1,10 +1,10 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserCreateDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserDetailDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserUpdateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserCreateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserDetailDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Role;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.UserProfile;
@@ -191,13 +191,13 @@ public class UserMapper {
 
         User e = new User();
         e.setEmail(dto.getEmail());
-        e.setActive(dto.isActive());
-        e.setAccountNonLocked(dto.isAccountNonLocked());
+        e.setActive(Boolean.TRUE.equals(dto.getActive()));
+        e.setAccountNonLocked(Boolean.TRUE.equals(dto.getAccountNonLocked()));
         e.setLastPasswordChange(dto.getLastPasswordChange());
         e.setPasswordExpiresAt(dto.getPasswordExpiresAt());
         e.setFailedLoginAttempts(dto.getFailedLoginAttempts());
-        e.setEmailVerified(dto.isEmailVerified());
-        e.setMustChangePassword(dto.isMustChangePassword());
+        e.setEmailVerified(Boolean.TRUE.equals(dto.getEmailVerified()));
+        e.setMustChangePassword(Boolean.TRUE.equals(dto.getMustChangePassword()));
         return e;
     }
 
@@ -215,13 +215,13 @@ public class UserMapper {
         User e = new User();
         e.setId(dto.getId());
         e.setEmail(dto.getEmail());
-        e.setActive(dto.isActive());
-        e.setAccountNonLocked(dto.isAccountNonLocked());
+        e.setActive(Boolean.TRUE.equals(dto.getActive()));
+        e.setAccountNonLocked(Boolean.TRUE.equals(dto.getAccountNonLocked()));
         e.setLastPasswordChange(dto.getLastPasswordChange());
         e.setPasswordExpiresAt(dto.getPasswordExpiresAt());
         e.setFailedLoginAttempts(dto.getFailedLoginAttempts());
-        e.setEmailVerified(dto.isEmailVerified());
-        e.setMustChangePassword(dto.isMustChangePassword());
+        e.setEmailVerified(Boolean.TRUE.equals(dto.getEmailVerified()));
+        e.setMustChangePassword(Boolean.TRUE.equals(dto.getMustChangePassword()));
         return e;
     }
 
@@ -236,13 +236,13 @@ public class UserMapper {
 
 
         entity.setEmail(dto.getEmail());
-        entity.setActive(dto.isActive());
-        entity.setAccountNonLocked(dto.isAccountNonLocked());
+        entity.setActive(Boolean.TRUE.equals(dto.getActive()));
+        entity.setAccountNonLocked(Boolean.TRUE.equals(dto.getAccountNonLocked()));
         entity.setLastPasswordChange(dto.getLastPasswordChange());
         entity.setPasswordExpiresAt(dto.getPasswordExpiresAt());
         entity.setFailedLoginAttempts(dto.getFailedLoginAttempts());
-        entity.setEmailVerified(dto.isEmailVerified());
-        entity.setMustChangePassword(dto.isMustChangePassword());
+        entity.setEmailVerified(Boolean.TRUE.equals(dto.getEmailVerified()));
+        entity.setMustChangePassword(Boolean.TRUE.equals(dto.getMustChangePassword()));
         // No tocar entity.setId(...)
         // Ni relaciones futuras como entity.getRoles(), etc.
     }

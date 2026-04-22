@@ -1,7 +1,7 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.springframework.http.HttpStatus;
 
 /**
  * Exepción genérica que indica que no se ha encontrado un recurso en la aplicación.
@@ -9,8 +9,7 @@ import lombok.Setter;
  * no existe una entidad con el valor buscado (por ejemplo, una región con ID=5).
  */
 @Getter
-@Setter
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends ApiBusinessException {
 
     /**
      * Nombre del recurso/entidad que no se ha encontrado (por ejemplo: "region", "province", "user").
@@ -35,7 +34,17 @@ public class ResourceNotFoundException extends RuntimeException {
      * @param value    valor del campo usado en la búsqueda (ej. {@code 5}).
      */
     public ResourceNotFoundException(String resource, String field, Object value) {
-        super(resource + " not found (" + field + "=" + value + ")");
+        super(
+                "RESOURCE_NOT_FOUND",
+                "api.error.resourceNotFound",
+                HttpStatus.NOT_FOUND,
+                resource,
+                field,
+                value,
+                resource,
+                field,
+                value
+        );
         this.resource = resource;
         this.field = field;
         this.value = value;

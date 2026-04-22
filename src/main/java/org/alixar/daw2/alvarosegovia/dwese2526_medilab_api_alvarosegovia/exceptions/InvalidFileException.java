@@ -1,11 +1,10 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.springframework.http.HttpStatus;
 
 @Getter
-@Setter
-public class InvalidFileException extends RuntimeException {
+public class InvalidFileException extends ApiBusinessException {
     /**
      * Recurso/funcionalidad afectada por el fichero (por ejemplo: "userProfile", "attachement", "ticket").
      * Mantener este dato ayuda a homogeneizar el manejo de errores entre dominios.
@@ -22,6 +21,7 @@ public class InvalidFileException extends RuntimeException {
      * Pueder ser {@code Null} si no aplica.
      */
     private final Object value;
+    private final String detail;
 
     /**
      * Construye la exepción indicando al contexto (recurso/campo/valor) del fichero inválido.
@@ -30,10 +30,21 @@ public class InvalidFileException extends RuntimeException {
      * @param value    valor/detalle asociado al error (ej. {@code "application/pdf"} o {@code 5242880}).
      */
     public InvalidFileException(String resource, String field, Object value) {
-        super("Invalid file for " + resource + " (" + field + "=" + value + ")");
+        super(
+                "INVALID_FILE",
+                "api.error.invalidFile",
+                HttpStatus.BAD_REQUEST,
+                resource,
+                field,
+                value,
+                resource,
+                field,
+                value
+        );
         this.resource = resource;
         this.field = field;
         this.value = value;
+        this.detail = null;
     }
 
     /**
@@ -45,11 +56,20 @@ public class InvalidFileException extends RuntimeException {
      * @param detail   detalle adicional legible (ej. {@code "File too large"}).
      */
     public InvalidFileException(String resource, String field, Object value, String detail) {
-        super("Invalid file for " + resource + " (" + field + "=" + value + "): " + detail);
+        super(
+                "INVALID_FILE",
+                detail == null ? "api.error.invalidFile" : detail,
+                HttpStatus.BAD_REQUEST,
+                resource,
+                field,
+                value,
+                resource,
+                field,
+                value
+        );
         this.resource = resource;
         this.field = field;
         this.value = value;
+        this.detail = detail;
     }
 }
-
-

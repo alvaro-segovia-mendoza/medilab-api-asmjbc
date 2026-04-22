@@ -1,13 +1,19 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.common.ApiErrorDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.CitaCreateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.CitaDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.CitaDetailDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.CitaUpdateDTO;
 import jakarta.validation.Valid;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.*;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Cita;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.CitaService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.clinical.CitaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +72,8 @@ public class CitaController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "Listar todas las citas visibles", description = "Devuelve todas las citas visibles para el usuario autenticado.")
+    @Operation(summary = "Exportar todas las citas (sin paginación)",
+            description = "Devuelve todas las citas visibles para el usuario autenticado sin paginar. Uso recomendado: exportación o reporting. Para listado normal usar GET /api/citas (paginado).")
     public ResponseEntity<List<CitaDTO>> getAllCitas() {
         logger.info("Solicitando la lista de todas las citas...");
         List<CitaDTO> citas = citaService.getAllCitas();
@@ -93,7 +100,9 @@ public class CitaController {
     @Operation(summary = "Reservar cita", description = "Reserva una cita sobre un slot concreto (`slotId`) y asigna automáticamente un técnico disponible.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Cita creada"),
-            @ApiResponse(responseCode = "400", description = "Slot no disponible o inconsistencia operativa")
+            @ApiResponse(responseCode = "400", description = "Slot no disponible o inconsistencia operativa",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
     public ResponseEntity<CitaDTO> createCita(@Valid @RequestBody CitaCreateDTO dto) {
 

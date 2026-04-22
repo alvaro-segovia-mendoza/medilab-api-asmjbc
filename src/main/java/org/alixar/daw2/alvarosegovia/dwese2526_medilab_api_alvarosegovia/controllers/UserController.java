@@ -2,17 +2,16 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.contro
 
 
 import jakarta.validation.Valid;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserCreateDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserDetailDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.UserUpdateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserCreateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserDetailDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.DuplicateResourceException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ResourceNotFoundException;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.UserService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.i18n.MessageService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,8 +21,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.Locale;
 /**
  * Controlador que maneja las operaciones CRUD para la entidad 'User'.
  * Se apoya exclusivamente en {@link UserService}.
@@ -35,11 +32,13 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private static final long PASSWORD_EXPIRY_DAYS = 90;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final MessageService messageService;
 
-    @Autowired
-    private MessageSource messageSource;
+    public UserController(UserService userService, MessageService messageService) {
+        this.userService = userService;
+        this.messageService = messageService;
+    }
 
     /**
      * Muestra el formulario para crear un nuevo usuario.
@@ -57,7 +56,6 @@ public class UserController {
     @GetMapping("/edit")
     public String showEditForm(@RequestParam("id") Long id,
                                Model model,
-                               Locale locale,
                                RedirectAttributes redirectAttributes) {
         try {
             UserUpdateDTO userDTO = userService.getForEdit(id);
@@ -65,13 +63,11 @@ public class UserController {
             model.addAttribute("listRoles", userService.listRoles());
         } catch (ResourceNotFoundException ex) {
             logger.warn("No se encontró el usuario con ID {}", id);
-            String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.detailNotFound");
             return "redirect:/users";
         } catch (Exception e) {
             logger.error("Error al cargar el usuario {}: {}", id, e.getMessage(), e);
-            String msg = messageSource.getMessage("msg.user-controller.edit.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.editError");
             return "redirect:/users";
         }
         return "views/user/user-form";
@@ -83,21 +79,18 @@ public class UserController {
     @GetMapping("/detail")
     public String showDetail(@RequestParam("id") Long id,
                              Model model,
-                             RedirectAttributes redirectAttributes,
-                             Locale locale) {
+                             RedirectAttributes redirectAttributes) {
         try {
             UserDetailDTO userDTO = userService.getDetail(id);
             model.addAttribute("user", userDTO);
             return "views/user/user-detail";
         } catch (ResourceNotFoundException ex) {
             logger.warn("No se encontró el usuario con ID {}", id);
-            String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.detailNotFound");
             return "redirect:/users";
         } catch (Exception e) {
             logger.error("Error al obtener el detalle del usuario {}: {}", id, e.getMessage(), e);
-            String msg = messageSource.getMessage("msg.user-controller.detail.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.detailError");
             return "redirect:/users";
         }
     }
@@ -120,7 +113,7 @@ public class UserController {
             model.addAttribute("sortParam", sortParam);
         } catch (Exception e) {
             logger.error("Error al listar los usuarios: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", "Error al listar los usuarios.");
+            model.addAttribute("errorMessage", messageService.getMessage("view.user.flash.listError"));
         }
         return "views/user/user-list";
     }
@@ -131,8 +124,7 @@ public class UserController {
     @PostMapping("/insert")
     public String insertUser(@Valid @ModelAttribute("user") UserCreateDTO userDTO,
                              BindingResult result,
-                             RedirectAttributes redirectAttributes,
-                             Locale locale) {
+                             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
             return "views/user/user-form";
@@ -144,13 +136,11 @@ public class UserController {
             return "redirect:/users";
         } catch (DuplicateResourceException ex) {
             logger.warn("Email duplicado: {}", userDTO.getEmail());
-            String msg = messageSource.getMessage("msg.user-controller.insert.emailExist", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.insertDuplicateEmail");
             return "redirect:/users/new";
         } catch (Exception e) {
             logger.error("Error al insertar el usuario {}: {}", userDTO.getEmail(), e.getMessage(), e);
-            String msg = messageSource.getMessage("msg.user-controller.insert.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.insertError");
             return "redirect:/users/new";
         }
     }
@@ -161,8 +151,7 @@ public class UserController {
     @PostMapping("/update")
     public String updateUser(@Valid @ModelAttribute("user") UserUpdateDTO userDTO,
                              BindingResult result,
-                             RedirectAttributes redirectAttributes,
-                             Locale locale) {
+                             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
             return "views/user/user-form";
@@ -174,16 +163,13 @@ public class UserController {
             return "redirect:/users";
         } catch (DuplicateResourceException ex) {
             logger.warn("Email duplicado: {}", userDTO.getEmail());
-            String msg = messageSource.getMessage("msg.user-controller.update.emailExist", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.updateDuplicateEmail");
             return "redirect:/users/edit?id=" + userDTO.getId();
         } catch (ResourceNotFoundException ex) {
-            String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.detailNotFound");
             return "redirect:/users";
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.user-controller.update.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.updateError");
             return "redirect:/users/edit?id=" + userDTO.getId();
         }
     }
@@ -193,18 +179,19 @@ public class UserController {
      */
     @PostMapping("/delete")
     public String deleteUser(@RequestParam("id") Long id,
-                             RedirectAttributes redirectAttributes,
-                             Locale locale) {
+                             RedirectAttributes redirectAttributes) {
         try {
             userService.delete(id);
             logger.info("Usuario con ID {} eliminado con éxito.", id);
         } catch (ResourceNotFoundException ex) {
-            String msg = messageSource.getMessage("msg.user-controller.detail.notFound", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.detailNotFound");
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.user-controller.delete.error", null, locale);
-            redirectAttributes.addFlashAttribute("errorMessage", msg);
+            addFlashError(redirectAttributes, "view.user.flash.deleteError");
         }
         return "redirect:/users";
+    }
+
+    private void addFlashError(RedirectAttributes redirectAttributes, String messageKey) {
+        redirectAttributes.addFlashAttribute("errorMessage", messageService.getMessage(messageKey));
     }
 }
