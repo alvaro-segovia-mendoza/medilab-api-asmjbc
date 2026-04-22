@@ -1,11 +1,12 @@
-package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services;
+package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.logistics;
 
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ParadaCreateDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ParadaDTO;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.ParadaUpdateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaCreateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Ruta;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.SlotCita;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Trailer;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ApiBusinessException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.SlotCitaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TrailerRepository;
@@ -137,7 +138,7 @@ class ParadaServiceImplTest {
                 .activa(true)
                 .build());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
                 paradaService.create(ParadaCreateDTO.builder()
                         .rutaId(rutaTarde.getId())
                         .nombre("Tomares")
@@ -150,7 +151,8 @@ class ParadaServiceImplTest {
                         .activa(true)
                         .build()));
 
-        assertEquals("El trailer ya tiene una parada planificada para esa fecha.", ex.getMessage());
+        assertEquals("PARADA_TRAILER_ALREADY_SCHEDULED_FOR_DATE", ex.getCode());
+        assertEquals("api.error.parada.trailerAlreadyScheduledForDate", ex.getMessageKey());
     }
 
     private Ruta createRutaActiva() {
