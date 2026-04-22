@@ -9,8 +9,8 @@ INSERT IGNORE INTO users (
 (2, 'paciente@app.local',         '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
 (3, 'doctor@app.local',       '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
 (4, 'blockeduser@app.local',  '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
-(5, 'alvaro-segovia-mendoza', '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
-(6, 'tecnico@gmail.com','$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE);
+(5, 'alvaro.segovia@app.local', '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
+(6, 'tecnico@app.local','$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE);
 
 
 -- Insertar los roles
@@ -238,9 +238,9 @@ INSERT IGNORE INTO user_profiles (
     user_id, first_name, last_name, phone_number,
     dni, date_of_birth, address, city, province
 ) VALUES
-(1, 'Admin', 'System', '600000001', 'DNI0001', '1980-01-01', 'Calle Admin 1', 'Madrid', 'Madrid'),
-(2, 'John', 'Doe', '600000002', 'DNI0002', '1992-04-10', 'Calle Falsa 123', 'Barcelona', 'Barcelona'),
-(3, 'Maria', 'Lopez', '600000003', 'DNI0003', '1988-09-21', 'Avenida Central 45', 'Valencia', 'Valencia'),
-(4, 'Blocked', 'User', '600000004', 'DNI0004', '1995-02-11', 'Calle Oscura 9', 'Sevilla', 'Sevilla'),
-(5, 'Alvaro', 'Segovia Mendoza', '600000005', 'DNI0005', '1998-06-15', 'Calle Desarrollo 7', 'Malaga', 'Malaga'),
-(6, 'Alvaro', 'SM', '600000006', 'DNI0006', '2001-01-06', 'Calle Backend 22', 'Granada', 'Granada');
+(1, 'Admin', 'System', '600000001', '12345678Z', '1980-01-01', 'Calle Admin 1', 'Madrid', 'Madrid'),
+(2, 'John', 'Doe', '600000002', '23456789H', '1992-04-10', 'Calle Falsa 123', 'Barcelona', 'Barcelona'),
+(3, 'Maria', 'Lopez', '600000003', '34567890J', '1988-09-21', 'Avenida Central 45', 'Valencia', 'Valencia'),
+(4, 'Blocked', 'User', '600000004', '45678901N', '1995-02-11', 'Calle Oscura 9', 'Sevilla', 'Sevilla'),
+(5, 'Alvaro', 'Segovia Mendoza', '600000005', '56789012W', '1998-06-15', 'Calle Desarrollo 7', 'Malaga', 'Malaga'),
+(6, 'Alvaro', 'SM', '600000006', '67890123Q', '2001-01-06', 'Calle Backend 22', 'Granada', 'Granada');
