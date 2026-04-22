@@ -32,3 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 .env
+
+# Generated JWT keystores/certificates
+docker/jwt/*.p12
+docker/jwt/*.jks
+docker/jwt/*.pem
+docker/jwt/*.key
