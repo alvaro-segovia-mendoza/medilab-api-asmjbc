@@ -3,13 +3,17 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.servic
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaCreateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaUpdateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Role;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Ruta;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.SlotCita;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Trailer;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.User;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ApiBusinessException;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RoleRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.SlotCitaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TrailerRepository;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +47,12 @@ class ParadaServiceImplTest {
 
     @Autowired
     private SlotCitaRepository slotCitaRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Test
     void createForcesDefaultScheduleAndGeneratesAvailableSlots() {
@@ -167,13 +177,33 @@ class ParadaServiceImplTest {
     }
 
     private Ruta createRutaActiva(Trailer trailer, String routeNamePrefix) {
+        User tecnico = createTecnico();
         return rutaRepository.save(Ruta.builder()
                 .nombre(routeNamePrefix + " " + System.nanoTime())
                 .origen("Sevilla")
                 .destino("Castilleja de la Cuesta")
                 .activa(true)
                 .trailer(trailer)
+                .tecnicos(new java.util.LinkedHashSet<>(List.of(tecnico)))
                 .build());
+    }
+
+    private User createTecnico() {
+        Role role = roleRepository.findByName("ROLE_TECNICO")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_TECNICO", "Tecnico", "Usuario técnico")));
+        User tecnico = new User(
+                "tecnico-" + System.nanoTime() + "@app.local",
+                "$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq",
+                true,
+                true,
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now().plusMonths(3),
+                0,
+                true,
+                false
+        );
+        tecnico.setRoles(new java.util.LinkedHashSet<>(List.of(role)));
+        return userRepository.save(tecnico);
     }
 
     @TestConfiguration
