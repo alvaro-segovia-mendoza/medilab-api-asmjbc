@@ -10,7 +10,8 @@ INSERT IGNORE INTO users (
 (3, 'doctor@app.local',       '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
 (4, 'blockeduser@app.local',  '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
 (5, 'alvaro.segovia@app.local', '$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
-(6, 'tecnico@app.local','$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE);
+(6, 'tecnico@app.local','$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE),
+(7, 'tecnico2@app.local','$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq', TRUE, TRUE, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 0, TRUE, FALSE);
 
 
 -- Insertar los roles
@@ -36,14 +37,19 @@ INSERT IGNORE INTO user_roles (user_id, role_id) VALUES
 -- paciente
 (5, 4),
 
--- técnico
-(6, 3);
+-- técnicos
+(6, 3),
+(7, 3);
 
 INSERT IGNORE INTO trailers (id, codigo, nombre, activo, descripcion) VALUES
 (1, 'TRL-001', 'Trailer Aljarafe y Sierra Norte', TRUE, 'Unidad movil de pruebas medicas');
 
 INSERT IGNORE INTO rutas (id, nombre, origen, destino, activa, trailer_id) VALUES
 (1, 'Ruta Sierra Norte Cordobesa desde Aljarafe', 'Castilleja de la Cuesta', 'Cardena', TRUE, 1);
+
+INSERT IGNORE INTO ruta_tecnicos (ruta_id, tecnico_id) VALUES
+(1, 6),
+(1, 7);
 
 -- Regla de negocio: un trailer no puede tener 2 paradas en el mismo dia.
 -- Cada parada ocupa todo el dia (09:00-15:00), por lo que cada parada es en un dia distinto.
@@ -197,20 +203,20 @@ INSERT IGNORE INTO cita (
 -- cita reservada por paciente y asignada automáticamente a técnico (parada 2, 2026-04-22 10:00)
 (1, 'Analitica', 'PENDIENTE', 5, 6, NULL, 29, NOW(), NOW()),
 
--- cita confirmada por el técnico (parada 2, 2026-04-22 10:30)
-(2, 'Radiografia', 'CONFIRMADA', 5, 6, NULL, 31, NOW(), NOW()),
+-- cita confirmada por el segundo técnico asignado a la ruta (parada 2, 2026-04-22 10:30)
+(2, 'Radiografia', 'CONFIRMADA', 5, 7, NULL, 31, NOW(), NOW()),
 
 -- cita ya validada por el médico (parada 4, 2026-04-24 09:00)
 (3, 'Resonancia', 'RESULTADOS_APROBADOS', 5, 6, 3, 73, NOW(), NOW()),
 
--- cita con resultados subidos pendiente de revisión médica (parada 4, 2026-04-24 09:30)
-(4, 'Ecografia', 'RESULTADOS_SUBIDOS', 2, 6, NULL, 75, NOW(), NOW()),
+-- cita con resultados subidos pendiente de revisión médica por el segundo técnico (parada 4, 2026-04-24 09:30)
+(4, 'Ecografia', 'RESULTADOS_SUBIDOS', 2, 7, NULL, 75, NOW(), NOW()),
 
 -- cita cancelada tras haber sido asignada (parada 5, 2026-04-25 09:00 cupo 2)
 (5, 'Hemograma', 'CANCELADA', 4, 6, NULL, 98, NOW(), NOW()),
 
--- cita confirmada con borrador técnico aún no enviado (parada 5, 2026-04-25 09:30)
-(6, 'Perfil lipidico', 'CONFIRMADA', 5, 6, NULL, 99, NOW(), NOW()),
+-- cita confirmada con borrador técnico aún no enviado por el segundo técnico (parada 5, 2026-04-25 09:30)
+(6, 'Perfil lipidico', 'CONFIRMADA', 5, 7, NULL, 99, NOW(), NOW()),
 
 -- segunda cita aprobada para enriquecer el historial del paciente (parada 5, 2026-04-25 09:00 cupo 1)
 (7, 'Glucosa', 'RESULTADOS_APROBADOS', 5, 6, 3, 97, NOW(), NOW());
@@ -223,10 +229,10 @@ INSERT IGNORE INTO registros_clinicos (
 (1, 3, 5, 6, 3, 'Resonancia', 'Sin hallazgos patológicos relevantes.',
  'Exploración completada correctamente.', 'Resultados validados.', 'Seguimiento rutinario.',
  'CONFIRMADO', NOW(), NOW(), NOW()),
-(2, 4, 2, 6, NULL, 'Ecografía', 'Imagen compatible con inflamación leve.',
+(2, 4, 2, 7, NULL, 'Ecografía', 'Imagen compatible con inflamación leve.',
  'Se remite a valoración médica.', NULL, NULL,
  'PENDIENTE_REVISION', NULL, NOW(), NOW()),
-(3, 6, 5, 6, NULL, 'Perfil lipídico', 'Colesterol total elevado pendiente de validación.',
+(3, 6, 5, 7, NULL, 'Perfil lipídico', 'Colesterol total elevado pendiente de validación.',
  'Borrador inicial del técnico.', NULL, NULL,
  'BORRADOR', NULL, NOW(), NOW()),
 (4, 7, 5, 6, 3, 'Glucosa', 'Glucemia basal ligeramente elevada.',
@@ -243,4 +249,5 @@ INSERT IGNORE INTO user_profiles (
 (3, 'Maria', 'Lopez', '600000003', '34567890J', '1988-09-21', 'Avenida Central 45', 'Valencia', 'Valencia'),
 (4, 'Blocked', 'User', '600000004', '45678901N', '1995-02-11', 'Calle Oscura 9', 'Sevilla', 'Sevilla'),
 (5, 'Alvaro', 'Segovia Mendoza', '600000005', '56789012W', '1998-06-15', 'Calle Desarrollo 7', 'Malaga', 'Malaga'),
-(6, 'Alvaro', 'SM', '600000006', '67890123Q', '2001-01-06', 'Calle Backend 22', 'Granada', 'Granada');
+(6, 'Alvaro', 'SM', '600000006', '67890123Q', '2001-01-06', 'Calle Backend 22', 'Granada', 'Granada'),
+(7, 'Laura', 'Tecnica Ruta', '600000007', '78901234L', '1999-03-18', 'Calle Laboratorio 12', 'Cordoba', 'Cordoba');

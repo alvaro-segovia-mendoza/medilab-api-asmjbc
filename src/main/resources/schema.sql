@@ -4,6 +4,7 @@
 
 DROP TABLE IF EXISTS registros_clinicos;
 DROP TABLE IF EXISTS password_reset_tokens;
+DROP TABLE IF EXISTS ruta_tecnicos;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS cita;
 DROP TABLE IF EXISTS slot_cita;
@@ -102,6 +103,25 @@ CREATE TABLE rutas (
 
     INDEX idx_ruta_trailer_id (trailer_id),
     INDEX idx_ruta_activa (activa)
+);
+
+CREATE TABLE ruta_tecnicos (
+    ruta_id BIGINT NOT NULL,
+    tecnico_id BIGINT NOT NULL,
+
+    CONSTRAINT pk_ruta_tecnicos PRIMARY KEY (ruta_id, tecnico_id),
+    CONSTRAINT fk_ruta_tecnicos_ruta
+        FOREIGN KEY (ruta_id)
+        REFERENCES rutas(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_ruta_tecnicos_tecnico
+        FOREIGN KEY (tecnico_id)
+        REFERENCES users(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    INDEX idx_ruta_tecnicos_tecnico_id (tecnico_id)
 );
 
 CREATE TABLE paradas (
