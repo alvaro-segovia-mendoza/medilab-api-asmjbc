@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface ParadaRepository extends JpaRepository<Parada, Long> {
     @Override
-    @EntityGraph(attributePaths = {"ruta", "ruta.trailer"})
+    @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})
     List<Parada> findAll();
 
     @Override
@@ -23,16 +23,16 @@ public interface ParadaRepository extends JpaRepository<Parada, Long> {
     Page<Parada> findAll(Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = {"ruta", "ruta.trailer"})
+    @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})
     Optional<Parada> findById(Long id);
 
-    @EntityGraph(attributePaths = {"ruta", "ruta.trailer"})
+    @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})
     List<Parada> findByRutaIdOrderByFechaAscOrdenParadaAsc(Long rutaId);
 
-    @EntityGraph(attributePaths = {"ruta", "ruta.trailer"})
+    @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})
     List<Parada> findByActivaTrueAndFechaOrderByHoraInicioAsc(LocalDate fecha);
 
-    @EntityGraph(attributePaths = {"ruta", "ruta.trailer"})
+    @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})
     List<Parada> findByActivaTrueAndFechaGreaterThanEqualOrderByRutaIdAscFechaAscOrdenParadaAsc(LocalDate fecha);
 
     boolean existsByRutaIdAndFechaAndOrdenParada(Long rutaId, LocalDate fecha, Integer ordenParada);

@@ -13,14 +13,14 @@ import java.util.Optional;
 public interface SlotCitaRepository extends JpaRepository<SlotCita, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer"})
+    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer", "parada.ruta.tecnicos", "parada.ruta.tecnicos.profile"})
     Optional<SlotCita> findById(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer"})
+    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer", "parada.ruta.tecnicos", "parada.ruta.tecnicos.profile"})
     Optional<SlotCita> findWithLockById(Long id);
 
-    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer"})
+    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer", "parada.ruta.tecnicos", "parada.ruta.tecnicos.profile"})
     List<SlotCita> findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(Long paradaId);
 
     List<SlotCita> findByParadaIdAndFechaHoraInicioOrderByCupoNumeroAsc(Long paradaId, LocalDateTime fechaHoraInicio);

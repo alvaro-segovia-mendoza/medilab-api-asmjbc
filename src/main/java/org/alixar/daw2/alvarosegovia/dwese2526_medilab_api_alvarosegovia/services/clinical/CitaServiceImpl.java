@@ -24,13 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 @Transactional
 public class CitaServiceImpl implements CitaService {
 
-    private static final String ROLE_TECNICO = "ROLE_TECNICO";
     private static final long CITA_DURATION_MINUTES = 30;
     private static final LocalTime WORKDAY_START = LocalTime.of(9, 0);
     private static final LocalTime WORKDAY_END = LocalTime.of(15, 0);
@@ -93,7 +93,7 @@ public class CitaServiceImpl implements CitaService {
     public CitaDTO create(CitaCreateDTO dto) {
         assertPatientOwnership(dto.getPacienteId());
         SlotCita slot = getReservableSlotWithLock(dto.getSlotId(), null);
-        User tecnicoDisponible = findAvailableTechnician(slot.getFechaHoraInicio(), null);
+        User tecnicoDisponible = findAvailableTechnician(slot, null);
 
         Cita cita = CitaMapper.toEntity(dto);
         cita.setPaciente(findRequiredUser(dto.getPacienteId(), "paciente"));
@@ -239,14 +239,44 @@ public class CitaServiceImpl implements CitaService {
                 .orElseThrow(() -> new ResourceNotFoundException(fieldName, "id", userId));
     }
 
-    private User findAvailableTechnician(LocalDateTime startAt, Long excludingCitaId) {
+    private User findAvailableTechnician(SlotCita slot, Long excludingCitaId) {
+        LocalDateTime startAt = slot.getFechaHoraInicio();
         LocalDateTime lowerBoundExclusive = startAt.minusMinutes(CITA_DURATION_MINUTES);
         LocalDateTime upperBoundExclusive = startAt.plusMinutes(CITA_DURATION_MINUTES);
+        var ruta = slot.getParada().getRuta();
+        if (ruta == null || ruta.getTecnicos() == null || ruta.getTecnicos().isEmpty()) {
+            throw ApiBusinessException.badRequest("CITA_NO_TECNICO_AVAILABLE", "api.error.cita.noTecnicoAvailable");
+        }
 
-        return userRepository.findDistinctByRolesNameOrderByIdAsc(ROLE_TECNICO).stream()
+        return ruta.getTecnicos().stream()
                 .filter(tecnico -> isTechnicianAvailable(tecnico.getId(), lowerBoundExclusive, upperBoundExclusive, excludingCitaId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("tecnicoDisponible", "fechaHora", startAt));
+                .min(Comparator
+                        .comparingLong((User tecnico) -> countFutureActiveCitasForRoute(tecnico.getId(), ruta.getId(), startAt))
+                        .thenComparing(User::getId))
+                .orElseThrow(() -> ApiBusinessException.badRequest("CITA_NO_TECNICO_AVAILABLE", "api.error.cita.noTecnicoAvailable"));
+    }
+
+    private User requireAssignedAvailableTechnician(Long tecnicoId, SlotCita slot, Long excludingCitaId) {
+        User tecnico = findOptionalUser(tecnicoId, "tecnico");
+        if (!isTecnicoAssignedToRoute(tecnico, slot)) {
+            throw ApiBusinessException.badRequest("CITA_TECNICO_NOT_ASSIGNED_TO_ROUTE", "api.error.cita.tecnicoNotAssignedToRoute");
+        }
+
+        LocalDateTime lowerBoundExclusive = slot.getFechaHoraInicio().minusMinutes(CITA_DURATION_MINUTES);
+        LocalDateTime upperBoundExclusive = slot.getFechaHoraInicio().plusMinutes(CITA_DURATION_MINUTES);
+        if (!isTechnicianAvailable(tecnico.getId(), lowerBoundExclusive, upperBoundExclusive, excludingCitaId)) {
+            throw ApiBusinessException.badRequest("CITA_NO_TECNICO_AVAILABLE", "api.error.cita.noTecnicoAvailable");
+        }
+        return tecnico;
+    }
+
+    private long countFutureActiveCitasForRoute(Long tecnicoId, Long rutaId, LocalDateTime from) {
+        return citaRepository.countByTecnicoIdAndEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(
+                tecnicoId,
+                BLOCKING_APPOINTMENT_STATES,
+                from,
+                rutaId
+        );
     }
 
     private Page<Cita> findVisibleCitas(Pageable pageable) {
@@ -324,9 +354,7 @@ public class CitaServiceImpl implements CitaService {
         if (time.isBefore(parada.getHoraInicio()) || slot.getFechaHoraFin().toLocalTime().isAfter(parada.getHoraFin())) {
             throw ApiBusinessException.badRequest("CITA_OUTSIDE_PARADA_SCHEDULE", "api.error.cita.outsideParadaSchedule");
         }
-        if (findAvailableTechnician(slot.getFechaHoraInicio(), excludingCitaId) == null) {
-            throw ApiBusinessException.badRequest("CITA_NO_TECNICO_AVAILABLE", "api.error.cita.noTecnicoAvailable");
-        }
+        findAvailableTechnician(slot, excludingCitaId);
     }
 
     private boolean isTechnicianAvailable(Long tecnicoId,
@@ -351,12 +379,21 @@ public class CitaServiceImpl implements CitaService {
 
     private User resolveTechnicianForUpdate(CitaUpdateDTO dto, Cita cita, SlotCita nextSlot, boolean slotChanged) {
         if (dto.getTecnicoId() != null) {
-            return findOptionalUser(dto.getTecnicoId(), "tecnico");
+            return requireAssignedAvailableTechnician(dto.getTecnicoId(), nextSlot, cita.getId());
         }
-        if (!slotChanged && cita.getTecnico() != null) {
+        if (!slotChanged && cita.getTecnico() != null && isTecnicoAssignedToRoute(cita.getTecnico(), nextSlot)) {
             return cita.getTecnico();
         }
-        return findAvailableTechnician(nextSlot.getFechaHoraInicio(), cita.getId());
+        return findAvailableTechnician(nextSlot, cita.getId());
+    }
+
+    private boolean isTecnicoAssignedToRoute(User tecnico, SlotCita slot) {
+        return tecnico != null
+                && slot.getParada() != null
+                && slot.getParada().getRuta() != null
+                && slot.getParada().getRuta().getTecnicos() != null
+                && slot.getParada().getRuta().getTecnicos().stream()
+                .anyMatch(routeTecnico -> routeTecnico.getId().equals(tecnico.getId()));
     }
 
     private void assertPatientOwnership(Long pacienteId) {

@@ -3,7 +3,9 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entiti
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
  * Relación 1:1 con 'users' mediante primary
  */
 @Data
+@EqualsAndHashCode(exclude = "user")
+@ToString(exclude = "user")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

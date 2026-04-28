@@ -13,6 +13,7 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.excepti
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.exceptions.ResourceNotFoundException;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers.UserMapper;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RoleRepository;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserProfileRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserProfileRepository userProfileRepository;
+
+    @Autowired
+    private RutaRepository rutaRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -144,6 +148,10 @@ public class UserServiceImpl implements UserService {
                     .filter(current -> current.getId().equals(id))
                     .ifPresent(u -> { throw ApiBusinessException.badRequest("USER_CANNOT_DELETE_OWN_ACCOUNT", "api.error.user.cannotDeleteOwnAccount"); });
         }
+        if (rutaRepository.existsByTecnicosId(id)) {
+            throw ApiBusinessException.badRequest("USER_HAS_RUTAS_ASSIGNED", "api.error.user.hasRutasAssigned");
+        }
+
         User user = userRepository.findWithRolesAndProfileById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", id));
 

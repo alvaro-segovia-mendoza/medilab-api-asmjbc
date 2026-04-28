@@ -1,11 +1,14 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -24,5 +27,10 @@ public class RutaCreateDTO {
 
     private Boolean activa;
 
+    @NotNull(message = "{validation.logistics.ruta.trailerId.required}")
     private Long trailerId;
+
+    @NotNull(message = "{validation.logistics.ruta.tecnicoIds.required}")
+    @Size(min = 1, max = 2, message = "{validation.logistics.ruta.tecnicoIds.size}")
+    private List<Long> tecnicoIds;
 }

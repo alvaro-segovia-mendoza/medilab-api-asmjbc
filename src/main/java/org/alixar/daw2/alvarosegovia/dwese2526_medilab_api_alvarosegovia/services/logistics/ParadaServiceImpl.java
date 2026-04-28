@@ -17,7 +17,6 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.reposit
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.ParadaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.SlotCitaRepository;
-import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +36,6 @@ import java.util.Map;
 @Transactional
 public class ParadaServiceImpl implements ParadaService {
 
-    private static final String ROLE_TECNICO = "ROLE_TECNICO";
     private static final long CITA_DURATION_MINUTES = 30;
     private static final LocalTime DEFAULT_STOP_START_TIME = LocalTime.of(9, 0);
     private static final LocalTime DEFAULT_STOP_END_TIME = LocalTime.of(15, 0);
@@ -53,9 +51,6 @@ public class ParadaServiceImpl implements ParadaService {
 
     @Autowired
     private RutaRepository rutaRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private CitaRepository citaRepository;
@@ -173,7 +168,7 @@ public class ParadaServiceImpl implements ParadaService {
         for (Map.Entry<LocalDateTime, List<SlotCita>> entry : slotsByStart.entrySet()) {
             LocalDateTime slotStartAt = entry.getKey();
             List<SlotCita> slotsAtTime = entry.getValue();
-            int plazasDisponibles = calculateRemainingCapacity(slotsAtTime, slotStartAt, parada.isActiva());
+            int plazasDisponibles = calculateRemainingCapacity(slotsAtTime, slotStartAt, parada);
             boolean reservable = plazasDisponibles > 0;
             List<Long> slotIdsDisponibles = reservable
                     ? slotsAtTime.stream()
@@ -220,15 +215,14 @@ public class ParadaServiceImpl implements ParadaService {
                 .orElseThrow(() -> new ResourceNotFoundException("ruta", "id", id));
     }
 
-    private boolean hasAvailableTechnician(LocalDateTime startAt) {
-        return countAvailableTechnicians(startAt) > 0;
-    }
-
-    private long countAvailableTechnicians(LocalDateTime startAt) {
+    private long countAvailableTechnicians(Ruta ruta, LocalDateTime startAt) {
+        if (ruta == null || ruta.getTecnicos() == null || ruta.getTecnicos().isEmpty()) {
+            return 0;
+        }
         LocalDateTime lowerBoundExclusive = startAt.minusMinutes(CITA_DURATION_MINUTES);
         LocalDateTime upperBoundExclusive = startAt.plusMinutes(CITA_DURATION_MINUTES);
 
-        return userRepository.findDistinctByRolesNameOrderByIdAsc(ROLE_TECNICO).stream()
+        return ruta.getTecnicos().stream()
                 .map(User::getId)
                 .filter(tecnicoId -> !citaRepository.existsByTecnicoIdAndEstadoInAndSlotFechaHoraInicioAfterAndSlotFechaHoraInicioBefore(
                         tecnicoId,
@@ -239,14 +233,14 @@ public class ParadaServiceImpl implements ParadaService {
                 .count();
     }
 
-    private int calculateRemainingCapacity(List<SlotCita> slotsAtTime, LocalDateTime slotStartAt, boolean paradaActiva) {
-        if (!paradaActiva) {
+    private int calculateRemainingCapacity(List<SlotCita> slotsAtTime, LocalDateTime slotStartAt, Parada parada) {
+        if (parada == null || !parada.isActiva()) {
             return 0;
         }
         int capacidadRestante = (int) slotsAtTime.stream()
                 .filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE)
                 .count();
-        int tecnicosDisponibles = (int) countAvailableTechnicians(slotStartAt);
+        int tecnicosDisponibles = (int) countAvailableTechnicians(parada.getRuta(), slotStartAt);
         return Math.max(0, Math.min(capacidadRestante, tecnicosDisponibles));
     }
 
@@ -304,6 +298,9 @@ public class ParadaServiceImpl implements ParadaService {
         }
         if (ruta.getTrailer() == null || !ruta.getTrailer().isActivo()) {
             throw ApiBusinessException.badRequest("PARADA_RUTA_WITHOUT_ACTIVE_TRAILER", "api.error.parada.rutaWithoutActiveTrailer");
+        }
+        if (ruta.getTecnicos() == null || ruta.getTecnicos().isEmpty() || ruta.getTecnicos().size() > 2) {
+            throw ApiBusinessException.badRequest("PARADA_RUTA_WITHOUT_TECNICOS", "api.error.parada.rutaWithoutTecnicos");
         }
         if (fecha == null || horaInicio == null || horaFin == null) {
             throw ApiBusinessException.badRequest("PARADA_SCHEDULE_REQUIRES_DATE_AND_TIME_RANGE", "api.error.parada.scheduleRequiresDateAndTimeRange");

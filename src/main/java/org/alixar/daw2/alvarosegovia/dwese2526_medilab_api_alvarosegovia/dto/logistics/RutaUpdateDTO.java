@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,5 +31,10 @@ public class RutaUpdateDTO {
     @NotNull(message = "{validation.logistics.ruta.activa.required}")
     private Boolean activa;
 
+    @NotNull(message = "{validation.logistics.ruta.trailerId.required}")
     private Long trailerId;
+
+    @NotNull(message = "{validation.logistics.ruta.tecnicoIds.required}")
+    @Size(min = 1, max = 2, message = "{validation.logistics.ruta.tecnicoIds.size}")
+    private List<Long> tecnicoIds;
 }

@@ -37,6 +37,16 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     boolean existsBySlotParadaIdAndEstadoIn(Long paradaId, List<Cita.EstadoCita> estados);
 
+    boolean existsByTecnicoIdAndEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(Long tecnicoId,
+                                                                                                   List<Cita.EstadoCita> estados,
+                                                                                                   LocalDateTime fechaHoraInicio,
+                                                                                                   Long rutaId);
+
+    long countByTecnicoIdAndEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(Long tecnicoId,
+                                                                                                List<Cita.EstadoCita> estados,
+                                                                                                LocalDateTime fechaHoraInicio,
+                                                                                                Long rutaId);
+
     @Query("SELECT c FROM Cita c WHERE (:estado IS NULL OR c.estado = :estado) AND (:pacienteId IS NULL OR c.paciente.id = :pacienteId)")
     Page<Cita> findByFilters(@Param("estado") Cita.EstadoCita estado,
                              @Param("pacienteId") Long pacienteId,

@@ -3,7 +3,9 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entiti
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -18,11 +20,8 @@ import java.util.Set;
  * métodos comunes como getters, setters, constructores, y otros métodos estándar de los objetos.
  */
 @Data
-// Genera automáticamente los métodos:
-// - Getters y setters para todos los campos.
-// - equals(), hashCode(), toString() y canEqual().
-// Esto mejora la legibilidad y evita código repetitivo.
-
+@EqualsAndHashCode(exclude = {"roles", "profile"})
+@ToString(exclude = {"roles", "profile"})
 @NoArgsConstructor
 // Genera un constructor vacío (sin parámetros).
 // Es necesario para frameworks como Hibernate o JPA,

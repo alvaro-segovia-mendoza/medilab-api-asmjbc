@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserBasicDTO;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,4 +20,6 @@ public class RutaDTO {
     private boolean activa;
     private Long trailerId;
     private String trailerNombre;
+    private List<Long> tecnicoIds;
+    private List<UserBasicDTO> tecnicos;
 }

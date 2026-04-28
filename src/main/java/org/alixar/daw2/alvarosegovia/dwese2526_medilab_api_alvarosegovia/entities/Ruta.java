@@ -4,7 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "rutas")
@@ -12,6 +17,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = "tecnicos")
+@ToString(exclude = "tecnicos")
 public class Ruta {
 
     @Id
@@ -33,4 +40,13 @@ public class Ruta {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "trailer_id", nullable = false)
     private Trailer trailer;
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "ruta_tecnicos",
+            joinColumns = @JoinColumn(name = "ruta_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tecnico_id", referencedColumnName = "id")
+    )
+    private Set<User> tecnicos = new HashSet<>();
 }

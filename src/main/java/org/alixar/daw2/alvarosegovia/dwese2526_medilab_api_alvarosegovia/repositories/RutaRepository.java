@@ -10,13 +10,19 @@ import java.util.List;
 
 public interface RutaRepository extends JpaRepository<Ruta, Long> {
     @Override
-    @EntityGraph(attributePaths = "trailer")
+    @EntityGraph(attributePaths = {"trailer", "tecnicos", "tecnicos.profile"})
     List<Ruta> findAll();
 
     @Override
-    @EntityGraph(attributePaths = "trailer")
+    @EntityGraph(attributePaths = {"trailer"})
     Page<Ruta> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = "trailer")
+    @Override
+    @EntityGraph(attributePaths = {"trailer", "tecnicos", "tecnicos.profile"})
+    java.util.Optional<Ruta> findById(Long id);
+
+    @EntityGraph(attributePaths = {"trailer", "tecnicos", "tecnicos.profile"})
     List<Ruta> findByActivaTrueOrderByNombreAsc();
+
+    boolean existsByTecnicosId(Long userId);
 }
