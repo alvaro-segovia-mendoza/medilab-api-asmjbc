@@ -71,6 +71,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<UserDetailDTO> searchPatients(String query, Pageable pageable) {
+        String normalizedQuery = normalizeSearchQuery(query);
+        return userRepository.searchPatients(normalizedQuery, pageable)
+                .map(UserMapper::toDetailDTO);
+    }
+
+    @Override
     public UserUpdateDTO getForEdit(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
@@ -228,6 +236,13 @@ public class UserServiceImpl implements UserService {
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private String normalizeSearchQuery(String query) {
+        if (query == null || query.isBlank()) {
+            return null;
+        }
+        return query.trim();
     }
 
 }

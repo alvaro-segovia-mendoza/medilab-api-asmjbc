@@ -5,10 +5,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.RegistroClinicoDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.clinical.RegistroClinicoReviewDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserDetailDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.clinical.RegistroClinicoService;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +32,18 @@ public class MedicoController {
 
     @Autowired
     private RegistroClinicoService registroClinicoService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/pacientes")
+    @Operation(summary = "Buscar pacientes", description = "Devuelve pacientes paginados por email, nombre, apellidos o DNI.")
+    public ResponseEntity<Page<UserDetailDTO>> searchPatients(
+            @RequestParam(required = false) String q,
+            @PageableDefault(size = 10, sort = "email", direction = Sort.Direction.ASC) Pageable pageable) {
+        logger.info("Buscando pacientes para revisión médica");
+        return ResponseEntity.ok(userService.searchPatients(q, pageable));
+    }
 
     @GetMapping("/registros-clinicos/pendientes")
     @Operation(summary = "Listar registros pendientes", description = "Devuelve los registros clínicos pendientes de revisión médica.")

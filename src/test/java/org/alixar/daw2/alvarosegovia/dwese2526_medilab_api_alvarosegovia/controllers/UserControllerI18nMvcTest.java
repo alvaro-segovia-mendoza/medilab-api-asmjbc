@@ -67,6 +67,11 @@ class UserControllerI18nMvcTest {
         }
 
         @Override
+        public Page<UserDetailDTO> searchPatients(String query, Pageable pageable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public UserUpdateDTO getForEdit(Long id) {
             throw new ResourceNotFoundException("user", "id", id);
         }

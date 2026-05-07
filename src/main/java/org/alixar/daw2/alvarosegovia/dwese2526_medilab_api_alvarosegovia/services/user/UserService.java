@@ -19,6 +19,8 @@ public interface UserService {
 
     Page<UserDetailDTO> listByRole(String roleName, Pageable pageable);
 
+    Page<UserDetailDTO> searchPatients(String query, Pageable pageable);
+
     UserUpdateDTO getForEdit(Long id);
 
     Long create(UserCreateDTO dto);

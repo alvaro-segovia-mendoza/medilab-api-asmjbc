@@ -117,4 +117,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"roles", "profile"})
     Page<User> findDistinctByRolesName(String roleName, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"profile"})
+    @Query("""
+            SELECT DISTINCT u
+            FROM User u
+            JOIN u.roles r
+            LEFT JOIN u.profile p
+            WHERE r.name = 'ROLE_PACIENTE'
+              AND (
+                :query IS NULL
+                OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(p.firstName, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(p.lastName, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(p.dni, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+              )
+            """)
+    Page<User> searchPatients(@Param("query") String query, Pageable pageable);
+
 }
