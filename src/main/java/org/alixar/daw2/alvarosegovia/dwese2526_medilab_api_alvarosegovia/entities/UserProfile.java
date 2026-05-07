@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,12 +40,12 @@ public class UserProfile {
     @JoinColumn(name = "user_id")
     private User user;
 
-    /** VARCHAR(60) NOT NULL */
-    @Column(name = "first_name", nullable = false, length = 60)
+    /** VARCHAR(60) NULL */
+    @Column(name = "first_name", length = 60)
     private String firstName;
 
-    /** VARCHAR(80) NOT NULL */
-    @Column(name = "last_name", nullable = false, length = 80)
+    /** VARCHAR(80) NULL */
+    @Column(name = "last_name", length = 80)
     private String lastName;
 
     /** VARCHAR(30) NULL */
@@ -62,8 +64,8 @@ public class UserProfile {
     @Column(name = "locale", length = 10)
     private String locale;
 
-    /** VARCHAR(20) NOT NULL UNIQUE */
-    @Column(name = "dni", nullable = false, unique = true, length = 20)
+    /** VARCHAR(20) NULL UNIQUE */
+    @Column(name = "dni", unique = true, length = 20)
     private String dni;
 
     /** DATE NULL */
@@ -82,12 +84,14 @@ public class UserProfile {
     @Column(name = "province", length = 50)
     private String province;
 
-    /** DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP (gestionado por la BD) */
-    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    /** DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP */
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP (BD) */
-    @Column(name = "updated_at", nullable = false, updatable = false, insertable = false)
+    /** DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP */
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     /**

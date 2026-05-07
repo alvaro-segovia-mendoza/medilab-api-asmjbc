@@ -56,8 +56,6 @@ public class ParadaMapper {
         entity.setDireccion(dto.getDireccion());
         entity.setOrdenParada(dto.getOrdenParada());
         entity.setFecha(dto.getFecha());
-        entity.setHoraInicio(dto.getHoraInicio());
-        entity.setHoraFin(dto.getHoraFin());
         entity.setCapacidadMaxima(dto.getCapacidadMaxima());
         entity.setActiva(dto.getActiva());
     }

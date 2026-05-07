@@ -45,7 +45,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(user.getId());
         UserProfile profile = profileOpt.orElse(null);
-        return UserProfileMapper.toFormDto(user, profile);
+        return withPublicProfileImageUrl(UserProfileMapper.toFormDto(user, profile));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(userId);
         UserProfile profile = profileOpt.orElse(null);
-        return UserProfileMapper.toFormDto(user, profile);
+        return withPublicProfileImageUrl(UserProfileMapper.toFormDto(user, profile));
     }
 
     /**
@@ -168,6 +168,14 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     private String normalizeDni(String dni) {
         return dni == null ? null : dni.trim().toUpperCase();
+    }
+
+
+    private UserProfileDTO withPublicProfileImageUrl(UserProfileDTO dto) {
+        if (dto != null && dto.getProfileImage() != null && !dto.getProfileImage().isBlank()) {
+            dto.setProfileImage(fileStorageService.toPublicUrl(dto.getProfileImage()));
+        }
+        return dto;
     }
 
 

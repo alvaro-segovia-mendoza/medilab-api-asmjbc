@@ -10,7 +10,16 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "paradas")
+@Table(
+        name = "paradas",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_parada_ruta_fecha_orden", columnNames = {"ruta_id", "fecha", "orden_parada"})
+        },
+        indexes = {
+                @Index(name = "idx_parada_activa_fecha_hora", columnList = "activa, fecha, hora_inicio"),
+                @Index(name = "idx_parada_activa_fecha_ruta_orden", columnList = "activa, fecha, ruta_id, orden_parada")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

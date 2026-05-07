@@ -93,6 +93,7 @@ public class RutaServiceImpl implements RutaService {
         Ruta ruta = findRuta(dto.getId());
         Trailer trailer = findActiveTrailer(dto.getTrailerId());
         Set<User> tecnicos = resolveTecnicos(dto.getTecnicoIds());
+        assertCanDeactivateOrChangeTrailer(ruta, dto, trailer);
         assertNotRemovingTecnicosWithActiveAppointments(ruta, tecnicos);
 
         ruta.setNombre(dto.getNombre());
@@ -171,5 +172,23 @@ public class RutaServiceImpl implements RutaService {
                 throw ApiBusinessException.badRequest("RUTA_TECNICO_HAS_ACTIVE_CITAS", "api.error.ruta.tecnicoHasActiveCitas");
             }
         }
+    }
+
+    private void assertCanDeactivateOrChangeTrailer(Ruta ruta, RutaUpdateDTO dto, Trailer nextTrailer) {
+        boolean deactivating = ruta.isActiva() && Boolean.FALSE.equals(dto.getActiva());
+        boolean changingTrailer = ruta.getTrailer() != null && !ruta.getTrailer().getId().equals(nextTrailer.getId());
+        if ((deactivating || changingTrailer) && hasFutureActiveAppointments(ruta.getId())) {
+            String code = deactivating ? "RUTA_HAS_ACTIVE_FUTURE_CITAS" : "RUTA_TRAILER_HAS_ACTIVE_FUTURE_CITAS";
+            String messageKey = deactivating ? "api.error.ruta.hasActiveFutureCitas" : "api.error.ruta.trailerHasActiveFutureCitas";
+            throw ApiBusinessException.badRequest(code, messageKey);
+        }
+    }
+
+    private boolean hasFutureActiveAppointments(Long rutaId) {
+        return citaRepository.existsByEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(
+                BLOCKING_APPOINTMENT_STATES,
+                LocalDateTime.now(),
+                rutaId
+        );
     }
 }

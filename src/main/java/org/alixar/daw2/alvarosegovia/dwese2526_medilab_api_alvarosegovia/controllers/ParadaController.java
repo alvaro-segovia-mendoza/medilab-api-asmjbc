@@ -56,13 +56,13 @@ public class ParadaController {
     }
 
     @GetMapping("/{id}/slots-disponibles")
-    @Operation(summary = "Consultar slots disponibles", description = "Devuelve la disponibilidad agregada de una parada a partir de slots persistidos. Cada franja incluye los `slotIdsDisponibles` que pueden reservarse.")
+    @Operation(summary = "Consultar slots disponibles", description = "Devuelve la disponibilidad agregada de una parada a partir de slots persistidos. Cada franja indica slots libres, técnicos disponibles y los `slotIdsDisponibles` que pueden reservarse.")
     public ResponseEntity<DisponibilidadParadaDTO> getDisponibilidad(@PathVariable Long id) {
         return ResponseEntity.ok(paradaService.getDisponibilidad(id));
     }
 
     @PostMapping
-    @Operation(summary = "Crear parada", description = "Crea una nueva parada para una ruta y genera automáticamente sus slots reservables.")
+    @Operation(summary = "Crear parada", description = "Crea una nueva parada para una ruta con horario operativo fijo de 09:00 a 15:00 y reconcilia sus slots reservables.")
     public ResponseEntity<ParadaDTO> create(@Valid @RequestBody ParadaCreateDTO dto) {
         ParadaDTO created = paradaService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.getId()).toUri();
@@ -70,7 +70,7 @@ public class ParadaController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar parada", description = "Actualiza una parada existente. Si cambia la planificación horaria o la capacidad, se regeneran los slots siempre que no existan citas activas asociadas.")
+    @Operation(summary = "Actualizar parada", description = "Actualiza una parada existente con horario operativo fijo de 09:00 a 15:00. Si cambia la fecha o la capacidad, reconcilia los slots siempre que no existan citas activas afectadas.")
     public ResponseEntity<ParadaDTO> update(@PathVariable Long id, @Valid @RequestBody ParadaUpdateDTO dto) {
         dto.setId(id);
         return ResponseEntity.ok(paradaService.update(dto));

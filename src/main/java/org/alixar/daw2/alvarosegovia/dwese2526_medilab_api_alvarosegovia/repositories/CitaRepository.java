@@ -42,6 +42,10 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
                                                                                                    LocalDateTime fechaHoraInicio,
                                                                                                    Long rutaId);
 
+    boolean existsByEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(List<Cita.EstadoCita> estados,
+                                                                                       LocalDateTime fechaHoraInicio,
+                                                                                       Long rutaId);
+
     long countByTecnicoIdAndEstadoInAndSlotFechaHoraInicioGreaterThanEqualAndSlotParadaRutaId(Long tecnicoId,
                                                                                                 List<Cita.EstadoCita> estados,
                                                                                                 LocalDateTime fechaHoraInicio,

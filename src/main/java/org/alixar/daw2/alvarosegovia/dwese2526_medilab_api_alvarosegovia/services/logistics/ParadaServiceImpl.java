@@ -58,6 +58,9 @@ public class ParadaServiceImpl implements ParadaService {
     @Autowired
     private SlotCitaRepository slotCitaRepository;
 
+    @Autowired
+    private SlotCitaGenerationService slotCitaGenerationService;
+
     @Override
     public List<ParadaDTO> list() {
         return ParadaMapper.toDTOList(paradaRepository.findAll());
@@ -81,6 +84,7 @@ public class ParadaServiceImpl implements ParadaService {
 
         validateSchedule(horaInicio, horaFin);
         validateOperationalConsistency(ruta, dto.getFecha(), horaInicio, horaFin);
+        validateCapacityAgainstAssignedTechnicians(ruta, dto.getCapacidadMaxima());
         validateSingleStopPerTrailerPerDay(ruta.getTrailer().getId(), dto.getFecha(), null);
         validateUniqueOrder(ruta.getId(), dto.getFecha(), dto.getOrdenParada(), null);
 
@@ -98,7 +102,7 @@ public class ParadaServiceImpl implements ParadaService {
                 .activa(dto.getActiva() == null || dto.getActiva())
                 .build();
         parada = paradaRepository.save(parada);
-        regenerateSlots(parada);
+        slotCitaGenerationService.reconcileSlots(parada);
         return ParadaMapper.toDTO(parada);
     }
 
@@ -111,20 +115,18 @@ public class ParadaServiceImpl implements ParadaService {
 
         validateSchedule(horaInicio, horaFin);
         validateOperationalConsistency(ruta, dto.getFecha(), horaInicio, horaFin);
+        validateCapacityAgainstAssignedTechnicians(ruta, dto.getCapacidadMaxima());
         validateSingleStopPerTrailerPerDay(ruta.getTrailer().getId(), dto.getFecha(), dto.getId());
         validateUniqueOrder(ruta.getId(), dto.getFecha(), dto.getOrdenParada(), dto.getId());
-        dto.setHoraInicio(horaInicio);
-        dto.setHoraFin(horaFin);
-        boolean requiresSlotRegeneration = requiresSlotRegeneration(parada, dto);
-        if (requiresSlotRegeneration) {
-            assertNoActiveAppointments(parada.getId());
-        }
+        boolean requiresSlotReconciliation = requiresSlotReconciliation(parada, dto, horaInicio, horaFin);
 
         parada.setRuta(ruta);
         ParadaMapper.copyToExistingEntity(dto, parada);
+        parada.setHoraInicio(horaInicio);
+        parada.setHoraFin(horaFin);
         parada = paradaRepository.save(parada);
-        if (requiresSlotRegeneration) {
-            regenerateSlots(parada);
+        if (requiresSlotReconciliation) {
+            slotCitaGenerationService.reconcileSlots(parada);
         }
         return ParadaMapper.toDTO(parada);
     }
@@ -168,10 +170,21 @@ public class ParadaServiceImpl implements ParadaService {
         for (Map.Entry<LocalDateTime, List<SlotCita>> entry : slotsByStart.entrySet()) {
             LocalDateTime slotStartAt = entry.getKey();
             List<SlotCita> slotsAtTime = entry.getValue();
-            int plazasDisponibles = calculateRemainingCapacity(slotsAtTime, slotStartAt, parada);
+            List<SlotCita> activeSlotsAtTime = slotsAtTime.stream()
+                    .filter(slot -> slot.getEstado() != SlotCita.EstadoSlot.NO_DISPONIBLE)
+                    .toList();
+            if (activeSlotsAtTime.isEmpty()) {
+                continue;
+            }
+
+            int plazasDisponibles = calculateRemainingCapacity(activeSlotsAtTime, slotStartAt, parada);
+            int slotsLibres = (int) activeSlotsAtTime.stream()
+                    .filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE)
+                    .count();
+            int tecnicosDisponibles = (int) countAvailableTechnicians(parada.getRuta(), slotStartAt);
             boolean reservable = plazasDisponibles > 0;
             List<Long> slotIdsDisponibles = reservable
-                    ? slotsAtTime.stream()
+                    ? activeSlotsAtTime.stream()
                     .filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE)
                     .sorted(Comparator.comparing(SlotCita::getCupoNumero))
                     .limit(plazasDisponibles)
@@ -182,7 +195,9 @@ public class ParadaServiceImpl implements ParadaService {
             slots.add(SlotDisponibilidadDTO.builder()
                     .slotIdsDisponibles(slotIdsDisponibles)
                     .fechaHora(slotStartAt)
-                    .reservasActivas(slotsAtTime.size() - (int) slotsAtTime.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE).count())
+                    .reservasActivas((int) activeSlotsAtTime.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.RESERVADO).count())
+                    .slotsLibres(slotsLibres)
+                    .tecnicosDisponibles(tecnicosDisponibles)
                     .plazasDisponibles(plazasDisponibles)
                     .reservable(reservable)
                     .build());
@@ -244,40 +259,18 @@ public class ParadaServiceImpl implements ParadaService {
         return Math.max(0, Math.min(capacidadRestante, tecnicosDisponibles));
     }
 
-    private boolean requiresSlotRegeneration(Parada parada, ParadaUpdateDTO dto) {
+    private boolean requiresSlotReconciliation(Parada parada, ParadaUpdateDTO dto, LocalTime horaInicio, LocalTime horaFin) {
         return !parada.getFecha().equals(dto.getFecha())
-                || !parada.getHoraInicio().equals(dto.getHoraInicio())
-                || !parada.getHoraFin().equals(dto.getHoraFin())
+                || !parada.getHoraInicio().equals(horaInicio)
+                || !parada.getHoraFin().equals(horaFin)
                 || !parada.getCapacidadMaxima().equals(dto.getCapacidadMaxima());
     }
 
-    private void assertNoActiveAppointments(Long paradaId) {
-        if (citaRepository.existsBySlotParadaIdAndEstadoIn(paradaId, BLOCKING_APPOINTMENT_STATES)) {
-            throw ApiBusinessException.badRequest("PARADA_CANNOT_RESCHEDULE_WITH_RESERVED_CITAS", "api.error.parada.cannotRescheduleWithReservedCitas");
+    private void validateCapacityAgainstAssignedTechnicians(Ruta ruta, Integer capacidadMaxima) {
+        int tecnicosAsignados = ruta.getTecnicos() == null ? 0 : ruta.getTecnicos().size();
+        if (capacidadMaxima == null || capacidadMaxima > tecnicosAsignados) {
+            throw ApiBusinessException.badRequest("PARADA_CAPACITY_EXCEEDS_TECNICOS", "api.error.parada.capacityExceedsTecnicos");
         }
-    }
-
-    private void regenerateSlots(Parada parada) {
-        slotCitaRepository.deleteByParadaId(parada.getId());
-
-        List<SlotCita> newSlots = new ArrayList<>();
-        LocalDateTime cursor = LocalDateTime.of(parada.getFecha(), parada.getHoraInicio());
-        LocalDateTime end = LocalDateTime.of(parada.getFecha(), parada.getHoraFin());
-
-        while (!cursor.plusMinutes(CITA_DURATION_MINUTES).isAfter(end)) {
-            for (int cupo = 1; cupo <= parada.getCapacidadMaxima(); cupo++) {
-                newSlots.add(SlotCita.builder()
-                        .parada(parada)
-                        .fechaHoraInicio(cursor)
-                        .fechaHoraFin(cursor.plusMinutes(CITA_DURATION_MINUTES))
-                        .cupoNumero(cupo)
-                        .estado(SlotCita.EstadoSlot.DISPONIBLE)
-                        .build());
-            }
-            cursor = cursor.plusMinutes(CITA_DURATION_MINUTES);
-        }
-
-        slotCitaRepository.saveAll(newSlots);
     }
 
     private void validateSchedule(LocalTime horaInicio, LocalTime horaFin) {

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,6 +31,12 @@ public class FileStorageService {
      */
     @Value("${app.upload-root}")
     private String uploadRootPath;
+
+    /**
+     * Base pública de la API usada para construir URLs absolutas de recursos subidos.
+     */
+    @Value("${app.api-public-base-url:http://localhost:8080}")
+    private String apiPublicBaseUrl;
 
     /** Subdirectorio donde se guardan los archivos subidos. */
     private static final String UPLOADS_SUBDIR = "uploads";
@@ -79,6 +86,29 @@ public class FileStorageService {
             logger.error("Error al guardar el archivo: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    /**
+     * Convierte una ruta web relativa guardada en BD en una URL pública absoluta.
+     *
+     * @param filePathOrWebPath ruta web, ruta absoluta previa o URL.
+     * @return URL absoluta lista para usar en el frontend.
+     */
+    public String toPublicUrl(String filePathOrWebPath) {
+        if (filePathOrWebPath == null || filePathOrWebPath.isBlank()) {
+            return filePathOrWebPath;
+        }
+
+        String value = filePathOrWebPath.trim();
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            return value;
+        }
+
+        return UriComponentsBuilder
+                .fromUriString(trimTrailingSlash(apiPublicBaseUrl))
+                .path(ensureLeadingSlash(value))
+                .build(true)
+                .toUriString();
     }
 
     /**
@@ -146,5 +176,16 @@ public class FileStorageService {
         }
 
         return value;
+    }
+
+    private String trimTrailingSlash(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("app.api-public-base-url no está configurada.");
+        }
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
+    private String ensureLeadingSlash(String value) {
+        return value.startsWith("/") ? value : "/" + value;
     }
 }

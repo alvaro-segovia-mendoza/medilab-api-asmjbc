@@ -11,7 +11,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -46,10 +45,6 @@ public class ParadaCreateDTO {
 
     @NotNull(message = "{validation.logistics.parada.fecha.required}")
     private LocalDate fecha;
-
-    private LocalTime horaInicio;
-
-    private LocalTime horaFin;
 
     @NotNull(message = "{validation.logistics.parada.capacidadMaxima.required}")
     @Positive(message = "{validation.logistics.parada.capacidadMaxima.positive}")

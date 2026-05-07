@@ -42,14 +42,14 @@ CREATE TABLE users (
 CREATE TABLE user_profiles (
     user_id BIGINT NOT NULL,
 
-    first_name VARCHAR(60) NOT NULL,
-    last_name VARCHAR(80) NOT NULL,
+    first_name VARCHAR(60) NULL,
+    last_name VARCHAR(80) NULL,
     phone_number VARCHAR(30) NULL,
     profile_image VARCHAR(255) NULL,
     bio VARCHAR(500) NULL,
     locale VARCHAR(10) NULL,
 
-    dni VARCHAR(20) NOT NULL UNIQUE,
+    dni VARCHAR(20) NULL UNIQUE,
     date_of_birth DATE NULL,
     address VARCHAR(150) NULL,
     city VARCHAR(50) NULL,
@@ -144,9 +144,13 @@ CREATE TABLE paradas (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    INDEX idx_parada_ruta_id (ruta_id),
-    INDEX idx_parada_fecha (fecha),
-    INDEX idx_parada_activa (activa)
+    CONSTRAINT uq_parada_ruta_fecha_orden UNIQUE (ruta_id, fecha, orden_parada),
+    CONSTRAINT chk_parada_horario_fijo CHECK (hora_inicio = '09:00:00' AND hora_fin = '15:00:00'),
+    CONSTRAINT chk_parada_capacidad_tecnicos CHECK (capacidad_maxima BETWEEN 1 AND 2),
+    CONSTRAINT chk_parada_horas_validas CHECK (hora_inicio < hora_fin),
+
+    INDEX idx_parada_activa_fecha_hora (activa, fecha, hora_inicio),
+    INDEX idx_parada_activa_fecha_ruta_orden (activa, fecha, ruta_id, orden_parada)
 );
 
 CREATE TABLE slot_cita (
@@ -164,10 +168,10 @@ CREATE TABLE slot_cita (
         ON UPDATE CASCADE,
 
     CONSTRAINT uq_slot_parada_inicio_cupo UNIQUE (parada_id, fecha_hora_inicio, cupo_numero),
+    CONSTRAINT chk_slot_fechas CHECK (fecha_hora_inicio < fecha_hora_fin),
+    CONSTRAINT chk_slot_cupo_numero CHECK (cupo_numero BETWEEN 1 AND 2),
 
-    INDEX idx_slot_parada_id (parada_id),
-    INDEX idx_slot_inicio (fecha_hora_inicio),
-    INDEX idx_slot_estado (estado)
+    INDEX idx_slot_estado_inicio (estado, fecha_hora_inicio)
 );
 
 -- =========================================

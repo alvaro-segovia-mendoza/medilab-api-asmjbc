@@ -1,8 +1,10 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.logistics;
 
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.DisponibilidadParadaDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaCreateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaUpdateDTO;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.RutaUpdateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Role;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Ruta;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.SlotCita;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.KeyPair;
@@ -40,6 +43,9 @@ class ParadaServiceImplTest {
     private ParadaService paradaService;
 
     @Autowired
+    private RutaService rutaService;
+
+    @Autowired
     private TrailerRepository trailerRepository;
 
     @Autowired
@@ -54,6 +60,9 @@ class ParadaServiceImplTest {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
     void createForcesDefaultScheduleAndGeneratesAvailableSlots() {
         Ruta ruta = createRutaActiva();
@@ -66,8 +75,6 @@ class ParadaServiceImplTest {
                 .direccion("Calle Real 1")
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 20))
-                .horaInicio(LocalTime.of(8, 0))
-                .horaFin(LocalTime.of(12, 0))
                 .capacidadMaxima(2)
                 .activa(true)
                 .build();
@@ -81,6 +88,172 @@ class ParadaServiceImplTest {
         assertEquals(LocalTime.of(9, 0), slots.getFirst().getFechaHoraInicio().toLocalTime());
         assertEquals(LocalTime.of(15, 0), slots.getLast().getFechaHoraFin().toLocalTime());
         assertTrue(slots.stream().allMatch(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE));
+    }
+
+    @Test
+    void updateDecreaseCapacityMarksExtraSlotsNoDisponibleAndHidesThemFromAvailability() {
+        Ruta ruta = createRutaActiva();
+
+        ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja con cupos")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Cupos 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 26))
+                .capacidadMaxima(2)
+                .activa(true)
+                .build());
+
+        ParadaDTO updated = paradaService.update(ParadaUpdateDTO.builder()
+                .id(created.getId())
+                .rutaId(ruta.getId())
+                .nombre("Castilleja con menos cupos")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Cupos 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 26))
+                .capacidadMaxima(1)
+                .activa(true)
+                .build());
+
+        List<SlotCita> slots = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(updated.getId());
+        DisponibilidadParadaDTO disponibilidad = paradaService.getDisponibilidad(updated.getId());
+
+        assertEquals(24, slots.size());
+        assertEquals(12, slots.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE).count());
+        assertEquals(12, slots.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.NO_DISPONIBLE).count());
+        assertEquals(12, disponibilidad.getSlots().size());
+        assertTrue(disponibilidad.getSlots().stream().allMatch(slot -> slot.getSlotIdsDisponibles().size() == 1));
+    }
+
+    @Test
+    void updateIncreaseCapacityReactivatesPreviouslyDisabledSlots() {
+        Ruta ruta = createRutaActiva();
+
+        ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja variable")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Variable 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 27))
+                .capacidadMaxima(2)
+                .activa(true)
+                .build());
+
+        paradaService.update(ParadaUpdateDTO.builder()
+                .id(created.getId())
+                .rutaId(ruta.getId())
+                .nombre("Castilleja reducida")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Variable 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 27))
+                .capacidadMaxima(1)
+                .activa(true)
+                .build());
+
+        ParadaDTO increased = paradaService.update(ParadaUpdateDTO.builder()
+                .id(created.getId())
+                .rutaId(ruta.getId())
+                .nombre("Castilleja ampliada")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Variable 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 27))
+                .capacidadMaxima(2)
+                .activa(true)
+                .build());
+
+        List<SlotCita> slots = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(increased.getId());
+
+        assertEquals(24, slots.size());
+        assertEquals(24, slots.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE).count());
+        assertEquals(0, slots.stream().filter(slot -> slot.getEstado() == SlotCita.EstadoSlot.NO_DISPONIBLE).count());
+    }
+
+    @Test
+    void updateRejectsCapacityReductionThatWouldRemoveReservedSlot() {
+        Ruta ruta = createRutaActiva();
+
+        ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja reservada")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Reservas 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 28))
+                .capacidadMaxima(2)
+                .activa(true)
+                .build());
+
+        SlotCita secondCupFirstSlot = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(created.getId()).get(1);
+        secondCupFirstSlot.setEstado(SlotCita.EstadoSlot.RESERVADO);
+        slotCitaRepository.save(secondCupFirstSlot);
+
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
+                paradaService.update(ParadaUpdateDTO.builder()
+                        .id(created.getId())
+                        .rutaId(ruta.getId())
+                        .nombre("Castilleja reduccion bloqueada")
+                        .municipio("Castilleja de la Cuesta")
+                        .provincia("Sevilla")
+                        .direccion("Avenida Reservas 1")
+                        .ordenParada(1)
+                        .fecha(LocalDate.of(2026, 4, 28))
+                        .capacidadMaxima(1)
+                        .activa(true)
+                        .build()));
+
+        assertEquals("PARADA_CANNOT_RESCHEDULE_WITH_RESERVED_CITAS", ex.getCode());
+    }
+
+    @Test
+    void updateWithoutScheduleOrCapacityChangesKeepsExistingSlotsUntouched() {
+        Ruta ruta = createRutaActiva();
+
+        ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja estable")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Estable 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 29))
+                .capacidadMaxima(2)
+                .activa(true)
+                .build());
+
+        List<SlotCita> originalSlots = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(created.getId());
+        List<Long> originalSlotIds = originalSlots.stream().map(SlotCita::getId).toList();
+
+        ParadaDTO updated = paradaService.update(ParadaUpdateDTO.builder()
+                .id(created.getId())
+                .rutaId(ruta.getId())
+                .nombre("Castilleja estable actualizada")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Avenida Estable 2")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 4, 29))
+                .capacidadMaxima(2)
+                .activa(false)
+                .build());
+
+        List<SlotCita> updatedSlots = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(updated.getId());
+
+        assertEquals(24, updatedSlots.size());
+        assertEquals(originalSlotIds, updatedSlots.stream().map(SlotCita::getId).toList());
+        assertEquals(LocalTime.of(9, 0), updatedSlots.getFirst().getFechaHoraInicio().toLocalTime());
+        assertEquals(LocalTime.of(15, 0), updatedSlots.getLast().getFechaHoraFin().toLocalTime());
+        assertTrue(updatedSlots.stream().allMatch(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE));
     }
 
     @Test
@@ -108,9 +281,7 @@ class ParadaServiceImplTest {
                 .direccion("Avenida Principal 3")
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 21))
-                .horaInicio(LocalTime.of(10, 0))
-                .horaFin(LocalTime.of(13, 0))
-                .capacidadMaxima(3)
+                .capacidadMaxima(2)
                 .activa(true)
                 .build());
 
@@ -118,10 +289,105 @@ class ParadaServiceImplTest {
 
         assertEquals(LocalTime.of(9, 0), updated.getHoraInicio());
         assertEquals(LocalTime.of(15, 0), updated.getHoraFin());
-        assertEquals(36, slots.size());
+        assertEquals(24, slots.size());
         assertEquals(LocalTime.of(9, 0), slots.getFirst().getFechaHoraInicio().toLocalTime());
         assertEquals(LocalTime.of(15, 0), slots.getLast().getFechaHoraFin().toLocalTime());
         assertTrue(slots.stream().allMatch(slot -> slot.getEstado() == SlotCita.EstadoSlot.DISPONIBLE));
+    }
+
+    @Test
+    void createRejectsCapacityGreaterThanAssignedTechnicians() {
+        Ruta ruta = createRutaActiva(1);
+
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
+                paradaService.create(ParadaCreateDTO.builder()
+                        .rutaId(ruta.getId())
+                        .nombre("Castilleja capacidad invalida")
+                        .municipio("Castilleja de la Cuesta")
+                        .provincia("Sevilla")
+                        .direccion("Calle Capacidad 1")
+                        .ordenParada(1)
+                        .fecha(LocalDate.of(2026, 5, 20))
+                        .capacidadMaxima(2)
+                        .activa(true)
+                        .build()));
+
+        assertEquals("PARADA_CAPACITY_EXCEEDS_TECNICOS", ex.getCode());
+    }
+
+    @Test
+    void updateRejectsCapacityGreaterThanAssignedTechnicians() {
+        Ruta ruta = createRutaActiva(1);
+        ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja capacidad")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Calle Capacidad 2")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 5, 21))
+                .capacidadMaxima(1)
+                .activa(true)
+                .build());
+
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
+                paradaService.update(ParadaUpdateDTO.builder()
+                        .id(created.getId())
+                        .rutaId(ruta.getId())
+                        .nombre("Castilleja capacidad actualizada")
+                        .municipio("Castilleja de la Cuesta")
+                        .provincia("Sevilla")
+                        .direccion("Calle Capacidad 2")
+                        .ordenParada(1)
+                        .fecha(LocalDate.of(2026, 5, 21))
+                        .capacidadMaxima(2)
+                        .activa(true)
+                        .build()));
+
+        assertEquals("PARADA_CAPACITY_EXCEEDS_TECNICOS", ex.getCode());
+    }
+
+    @Test
+    void updateRouteRejectsDeactivationWithFutureActiveAppointments() {
+        Ruta ruta = createRutaActiva();
+        ParadaDTO parada = paradaService.create(ParadaCreateDTO.builder()
+                .rutaId(ruta.getId())
+                .nombre("Castilleja futura")
+                .municipio("Castilleja de la Cuesta")
+                .provincia("Sevilla")
+                .direccion("Calle Futuro 1")
+                .ordenParada(1)
+                .fecha(LocalDate.of(2026, 6, 20))
+                .capacidadMaxima(1)
+                .activa(true)
+                .build());
+        SlotCita slot = slotCitaRepository.findByParadaIdOrderByFechaHoraInicioAscCupoNumeroAsc(parada.getId()).getFirst();
+        slot.setEstado(SlotCita.EstadoSlot.RESERVADO);
+        slot = slotCitaRepository.save(slot);
+        User tecnico = ruta.getTecnicos().iterator().next();
+        User paciente = createUserWithRole("ROLE_PACIENTE", "Paciente", "Usuario paciente");
+        jdbcTemplate.update("""
+                        insert into cita (tipo_prueba, estado, paciente_id, tecnico_id, slot_id, created_at, updated_at)
+                        values (?, ?, ?, ?, ?, current_timestamp, current_timestamp)
+                        """,
+                "Analítica",
+                "PENDIENTE",
+                paciente.getId(),
+                tecnico.getId(),
+                slot.getId());
+
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
+                rutaService.update(RutaUpdateDTO.builder()
+                        .id(ruta.getId())
+                        .nombre(ruta.getNombre())
+                        .origen(ruta.getOrigen())
+                        .destino(ruta.getDestino())
+                        .activa(false)
+                        .trailerId(ruta.getTrailer().getId())
+                        .tecnicoIds(ruta.getTecnicos().stream().map(User::getId).toList())
+                        .build()));
+
+        assertEquals("RUTA_HAS_ACTIVE_FUTURE_CITAS", ex.getCode());
     }
 
     @Test
@@ -166,6 +432,10 @@ class ParadaServiceImplTest {
     }
 
     private Ruta createRutaActiva() {
+        return createRutaActiva(2);
+    }
+
+    private Ruta createRutaActiva(int tecnicoCount) {
         Trailer trailer = trailerRepository.save(Trailer.builder()
                 .codigo("TRL-" + System.nanoTime())
                 .nombre("Trailer operativo")
@@ -173,26 +443,36 @@ class ParadaServiceImplTest {
                 .descripcion("Trailer de pruebas")
                 .build());
 
-        return createRutaActiva(trailer, "Ruta Sevilla Oeste");
+        return createRutaActiva(trailer, "Ruta Sevilla Oeste", tecnicoCount);
     }
 
     private Ruta createRutaActiva(Trailer trailer, String routeNamePrefix) {
-        User tecnico = createTecnico();
+        return createRutaActiva(trailer, routeNamePrefix, 2);
+    }
+
+    private Ruta createRutaActiva(Trailer trailer, String routeNamePrefix, int tecnicoCount) {
+        List<User> tecnicos = java.util.stream.IntStream.range(0, tecnicoCount)
+                .mapToObj(ignored -> createTecnico())
+                .toList();
         return rutaRepository.save(Ruta.builder()
                 .nombre(routeNamePrefix + " " + System.nanoTime())
                 .origen("Sevilla")
                 .destino("Castilleja de la Cuesta")
                 .activa(true)
                 .trailer(trailer)
-                .tecnicos(new java.util.LinkedHashSet<>(List.of(tecnico)))
+                .tecnicos(new java.util.LinkedHashSet<>(tecnicos))
                 .build());
     }
 
     private User createTecnico() {
-        Role role = roleRepository.findByName("ROLE_TECNICO")
-                .orElseGet(() -> roleRepository.save(new Role("ROLE_TECNICO", "Tecnico", "Usuario técnico")));
-        User tecnico = new User(
-                "tecnico-" + System.nanoTime() + "@app.local",
+        return createUserWithRole("ROLE_TECNICO", "Tecnico", "Usuario técnico");
+    }
+
+    private User createUserWithRole(String roleName, String displayName, String description) {
+        Role role = roleRepository.findByName(roleName)
+                .orElseGet(() -> roleRepository.save(new Role(roleName, displayName, description)));
+        User user = new User(
+                roleName.toLowerCase().replace("role_", "") + "-" + System.nanoTime() + "@app.local",
                 "$2a$12$k6ReF58EW2891dAvOYNaDeT9wwPMiG.se/8ZmESUObCXBbRCPrkVq",
                 true,
                 true,
@@ -202,8 +482,8 @@ class ParadaServiceImplTest {
                 true,
                 false
         );
-        tecnico.setRoles(new java.util.LinkedHashSet<>(List.of(role)));
-        return userRepository.save(tecnico);
+        user.setRoles(new java.util.LinkedHashSet<>(List.of(role)));
+        return userRepository.save(user);
     }
 
     @TestConfiguration

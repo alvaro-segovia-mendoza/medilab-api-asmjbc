@@ -25,5 +25,9 @@ public interface SlotCitaRepository extends JpaRepository<SlotCita, Long> {
 
     List<SlotCita> findByParadaIdAndFechaHoraInicioOrderByCupoNumeroAsc(Long paradaId, LocalDateTime fechaHoraInicio);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"parada", "parada.ruta", "parada.ruta.trailer", "parada.ruta.tecnicos", "parada.ruta.tecnicos.profile"})
+    List<SlotCita> findWithLockByParadaIdAndFechaHoraInicioOrderByCupoNumeroAsc(Long paradaId, LocalDateTime fechaHoraInicio);
+
     void deleteByParadaId(Long paradaId);
 }

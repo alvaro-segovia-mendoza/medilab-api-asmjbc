@@ -55,7 +55,7 @@ public class RutaController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar ruta", description = "Actualiza una ruta existente.")
+    @Operation(summary = "Actualizar ruta", description = "Actualiza una ruta existente. No permite desactivar la ruta ni cambiar su tráiler si existen citas activas futuras.")
     public ResponseEntity<RutaDTO> update(@PathVariable Long id, @Valid @RequestBody RutaUpdateDTO dto) {
         dto.setId(id);
         return ResponseEntity.ok(rutaService.update(dto));

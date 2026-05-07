@@ -120,6 +120,20 @@ public class CitaServiceImpl implements CitaService {
                 );
         assertCanModifyCita(cita, dto);
 
+        if (cita.getEstado() == Cita.EstadoCita.CANCELADA) {
+            throw ApiBusinessException.badRequest("CITA_ALREADY_CANCELLED", "api.error.cita.alreadyCancelled");
+        }
+
+        // Cancellation via update: just release slot, no slot re-validation
+        if (dto.getEstadoCita() == Cita.EstadoCita.CANCELADA) {
+            cita.setEstado(Cita.EstadoCita.CANCELADA);
+            if (cita.getSlot() != null) {
+                cita.getSlot().setEstado(SlotCita.EstadoSlot.DISPONIBLE);
+                slotCitaRepository.save(cita.getSlot());
+            }
+            return CitaMapper.toDTO(citaRepository.save(cita));
+        }
+
         SlotCita previousSlot = cita.getSlot();
         SlotCita nextSlot = getReservableSlotWithLock(dto.getSlotId(), cita.getId());
         boolean slotChanged = previousSlot == null || !previousSlot.getId().equals(nextSlot.getId());
@@ -180,15 +194,12 @@ public class CitaServiceImpl implements CitaService {
      */
     @Override
     public void delete(Long id) {
-
-        if (!citaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("cita", "id", id);
-        }
-
         Cita cita = citaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("cita", "id", id));
 
-        if (cita.getSlot() != null) {
+        if (cita.getSlot() != null
+                && cita.getEstado() != Cita.EstadoCita.CANCELADA
+                && cita.getSlot().getEstado() == SlotCita.EstadoSlot.RESERVADO) {
             cita.getSlot().setEstado(SlotCita.EstadoSlot.DISPONIBLE);
             slotCitaRepository.save(cita.getSlot());
         }
@@ -312,7 +323,17 @@ public class CitaServiceImpl implements CitaService {
     }
 
     private SlotCita getReservableSlotWithLock(Long slotId, Long excludingCitaId) {
-        SlotCita slot = slotCitaRepository.findWithLockById(slotId)
+        // Load without lock to get parada + time for franja query
+        SlotCita probe = slotCitaRepository.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("slot", "id", slotId));
+        // Lock entire franja — serializes concurrent bookings for the same time window
+        List<SlotCita> franjaSlots = slotCitaRepository
+                .findWithLockByParadaIdAndFechaHoraInicioOrderByCupoNumeroAsc(
+                        probe.getParada().getId(), probe.getFechaHoraInicio());
+        // Re-obtain the requested slot from the locked list
+        SlotCita slot = franjaSlots.stream()
+                .filter(s -> s.getId().equals(slotId))
+                .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("slot", "id", slotId));
         validateAppointmentSlot(slot, excludingCitaId);
         return slot;
@@ -322,6 +343,9 @@ public class CitaServiceImpl implements CitaService {
         LocalDateTime fechaHora = slot.getFechaHoraInicio();
         LocalTime time = fechaHora.toLocalTime();
 
+        if (fechaHora.isBefore(LocalDateTime.now())) {
+            throw ApiBusinessException.badRequest("CITA_SLOT_IN_PAST", "api.error.cita.slotInPast");
+        }
         if (slot.getEstado() != SlotCita.EstadoSlot.DISPONIBLE && excludingCitaId == null) {
             throw ApiBusinessException.badRequest("CITA_SLOT_UNAVAILABLE", "api.error.cita.slotUnavailable");
         }
@@ -354,7 +378,6 @@ public class CitaServiceImpl implements CitaService {
         if (time.isBefore(parada.getHoraInicio()) || slot.getFechaHoraFin().toLocalTime().isAfter(parada.getHoraFin())) {
             throw ApiBusinessException.badRequest("CITA_OUTSIDE_PARADA_SCHEDULE", "api.error.cita.outsideParadaSchedule");
         }
-        findAvailableTechnician(slot, excludingCitaId);
     }
 
     private boolean isTechnicianAvailable(Long tecnicoId,

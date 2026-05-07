@@ -9,7 +9,15 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "slot_cita")
+@Table(
+        name = "slot_cita",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_slot_parada_inicio_cupo", columnNames = {"parada_id", "fecha_hora_inicio", "cupo_numero"})
+        },
+        indexes = {
+                @Index(name = "idx_slot_estado_inicio", columnList = "estado, fecha_hora_inicio")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
