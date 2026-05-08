@@ -75,6 +75,21 @@ services:
       retries: 10
       start_period: 40s
 
+  frontend:
+    build:
+      context: /Users/alvaro/testpj/medilab-frontend
+      dockerfile: Dockerfile
+    image: medilab-frontend:latest
+    container_name: medilab-frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    environment:
+      BACKEND_URL: http://api:8080
+
 volumes:
   mariadb_data:
   uploads_data:
