@@ -77,7 +77,7 @@ services:
 
   frontend:
     build:
-      context: /Users/alvaro/testpj/medilab-frontend
+      context: ../medilab-frontend
       dockerfile: Dockerfile
     image: medilab-frontend:latest
     container_name: medilab-frontend
