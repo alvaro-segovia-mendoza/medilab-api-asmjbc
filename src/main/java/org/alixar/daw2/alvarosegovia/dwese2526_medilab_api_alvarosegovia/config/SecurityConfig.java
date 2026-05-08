@@ -17,8 +17,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -145,20 +143,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    /**
-     * Configura el codificador de contraseñas para cifrar las contraseñas de los usuarios
-     * utilizando BCrypt.
-     *
-     * @return una instancia de {@link PasswordEncoder} que utiliza BCrypt para cifrar contraseñas.
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        logger.info("Entrando en el método passwordEncoder");
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
-        logger.info("Saliendo del método passwordEncoder");
-        return encoder;
     }
 
     @Bean

@@ -112,6 +112,11 @@ class UserControllerI18nMvcTest {
         }
 
         @Override
+        public User findOrCreateGithubUser(String email, String githubLogin) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void updatePassword(Long userId, String rawPassword) {
             throw new UnsupportedOperationException();
         }
