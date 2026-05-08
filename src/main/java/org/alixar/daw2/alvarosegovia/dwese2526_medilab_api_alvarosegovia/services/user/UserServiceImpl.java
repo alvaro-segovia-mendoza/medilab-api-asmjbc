@@ -224,6 +224,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findOrCreateGithubUser(String email, String githubLogin) {
+        return userRepository.findByEmailIgnoreCase(email).orElseGet(() -> {
+            Role patientRole = roleRepository.findByName("ROLE_PACIENTE")
+                    .orElseThrow(() -> new ResourceNotFoundException("role", "name", "ROLE_PACIENTE"));
+
+            User user = new User();
+            user.setEmail(email);
+            user.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+            user.setActive(true);
+            user.setAccountNonLocked(true);
+            user.setFailedLoginAttempts(0);
+            user.setEmailVerified(true);
+            user.setMustChangePassword(false);
+            user.setLastPasswordChange(LocalDateTime.now());
+            user.setRoles(Set.of(patientRole));
+            return userRepository.save(user);
+        });
+    }
+
+    @Override
     public void updatePassword(Long userId, String rawPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", userId));

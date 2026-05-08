@@ -3,8 +3,10 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.filters.JwtAuthenticationFilter;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.security.RestAccessDeniedHandler;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.config.security.RestAuthenticationEntryPoint;
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.auth.GithubOAuth2UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,9 +46,18 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:4200}")
     private String allowedOrigins;
 
+    @Value("${app.public-base-url}")
+    private String publicBaseUrl;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
+
+    @Autowired
+    private GithubOAuth2UserService githubOAuth2UserService;
+
+    @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           RestAuthenticationEntryPoint restAuthenticationEntryPoint,
@@ -65,7 +76,7 @@ public class SecurityConfig {
      * @throws Exception si ocurre un error en la configuración de seguridad.
      */
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CorsConfigurationSource corsConfigurationSource
@@ -157,6 +168,23 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
+    public SecurityFilterChain oauth2Chain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        http
+                .securityMatcher("/oauth2/**", "/login/oauth2/**")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(info -> info.userService(githubOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureUrl(publicBaseUrl + "/login?error=oauth2")
+                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain swaggerChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
                 .securityMatcher(

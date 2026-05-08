@@ -35,6 +35,8 @@ public interface UserService {
 
     User registerPatient(String email, String rawPassword);
 
+    User findOrCreateGithubUser(String email, String githubLogin);
+
     User getByEmail(String email);
 
     void updatePassword(Long userId, String rawPassword);
