@@ -5,11 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(
         name = "paradas",
         uniqueConstraints = {
@@ -46,6 +52,12 @@ public class Parada {
     @Column(name = "direccion", length = 150)
     private String direccion;
 
+    @Column(name = "latitud", nullable = false, precision = 9, scale = 6)
+    private BigDecimal latitud;
+
+    @Column(name = "longitud", nullable = false, precision = 9, scale = 6)
+    private BigDecimal longitud;
+
     @Column(name = "orden_parada", nullable = false)
     private Integer ordenParada;
 
@@ -63,4 +75,12 @@ public class Parada {
 
     @Column(name = "activa", nullable = false)
     private boolean activa = true;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
