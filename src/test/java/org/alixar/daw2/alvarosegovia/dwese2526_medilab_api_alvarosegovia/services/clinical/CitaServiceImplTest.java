@@ -32,10 +32,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -46,6 +48,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 class CitaServiceImplTest {
+
+    private static final BigDecimal DEFAULT_LATITUD = new BigDecimal("37.386356");
+    private static final BigDecimal DEFAULT_LONGITUD = new BigDecimal("-6.051731");
 
     @Autowired
     private CitaService citaService;
@@ -346,6 +351,8 @@ class CitaServiceImplTest {
                 .origen("Sevilla")
                 .destino("Castilleja")
                 .activa(true)
+                .fechaInicio(LocalDate.of(2023, 1, 1))
+                .fechaFin(LocalDate.of(2030, 12, 31))
                 .trailer(trailer)
                 .tecnicos(new LinkedHashSet<>(tecnicos))
                 .build());
@@ -358,8 +365,12 @@ class CitaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Test 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2027, 6, 1))
+                .horaInicio(LocalTime.of(9, 0))
+                .horaFin(LocalTime.of(15, 0))
                 .capacidadMaxima(capacidad)
                 .activa(true)
                 .build());
@@ -372,8 +383,12 @@ class CitaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Pasado 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2024, 1, 15))
+                .horaInicio(LocalTime.of(9, 0))
+                .horaFin(LocalTime.of(15, 0))
                 .capacidadMaxima(capacidad)
                 .activa(true)
                 .build());

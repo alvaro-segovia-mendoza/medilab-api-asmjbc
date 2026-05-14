@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.LocalDate;
@@ -38,6 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @Transactional
 class ParadaServiceImplTest {
+
+    private static final BigDecimal DEFAULT_LATITUD = new BigDecimal("37.386356");
+    private static final BigDecimal DEFAULT_LONGITUD = new BigDecimal("-6.051731");
+    private static final LocalTime DEFAULT_HORA_INICIO = LocalTime.of(9, 0);
+    private static final LocalTime DEFAULT_HORA_FIN = LocalTime.of(15, 0);
 
     @Autowired
     private ParadaService paradaService;
@@ -64,7 +70,7 @@ class ParadaServiceImplTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void createForcesDefaultScheduleAndGeneratesAvailableSlots() {
+    void createWithUserSuppliedScheduleGeneratesCorrectSlots() {
         Ruta ruta = createRutaActiva();
 
         ParadaCreateDTO dto = ParadaCreateDTO.builder()
@@ -73,8 +79,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Real 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 20))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build();
@@ -100,8 +110,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Cupos 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 26))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -113,8 +127,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Cupos 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 26))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -139,8 +157,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Variable 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 27))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -152,8 +174,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Variable 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 27))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -165,8 +191,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Variable 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 27))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -188,8 +218,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Reservas 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 28))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -206,8 +240,12 @@ class ParadaServiceImplTest {
                         .municipio("Castilleja de la Cuesta")
                         .provincia("Sevilla")
                         .direccion("Avenida Reservas 1")
+                        .latitud(DEFAULT_LATITUD)
+                        .longitud(DEFAULT_LONGITUD)
                         .ordenParada(1)
                         .fecha(LocalDate.of(2026, 4, 28))
+                        .horaInicio(DEFAULT_HORA_INICIO)
+                        .horaFin(DEFAULT_HORA_FIN)
                         .capacidadMaxima(1)
                         .activa(true)
                         .build()));
@@ -225,8 +263,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Estable 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 29))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -241,8 +283,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Estable 2")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 29))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(false)
                 .build());
@@ -257,7 +303,7 @@ class ParadaServiceImplTest {
     }
 
     @Test
-    void updateAlsoForcesDefaultScheduleAndRegeneratesSlots() {
+    void updateWithNewScheduleRegeneratesSlots() {
         Ruta ruta = createRutaActiva();
 
         ParadaDTO created = paradaService.create(ParadaCreateDTO.builder()
@@ -266,8 +312,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Principal 2")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 21))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -279,8 +329,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Avenida Principal 3")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 21))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(2)
                 .activa(true)
                 .build());
@@ -306,8 +360,12 @@ class ParadaServiceImplTest {
                         .municipio("Castilleja de la Cuesta")
                         .provincia("Sevilla")
                         .direccion("Calle Capacidad 1")
+                        .latitud(DEFAULT_LATITUD)
+                        .longitud(DEFAULT_LONGITUD)
                         .ordenParada(1)
                         .fecha(LocalDate.of(2026, 5, 20))
+                        .horaInicio(DEFAULT_HORA_INICIO)
+                        .horaFin(DEFAULT_HORA_FIN)
                         .capacidadMaxima(2)
                         .activa(true)
                         .build()));
@@ -324,8 +382,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Capacidad 2")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 5, 21))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -338,8 +400,12 @@ class ParadaServiceImplTest {
                         .municipio("Castilleja de la Cuesta")
                         .provincia("Sevilla")
                         .direccion("Calle Capacidad 2")
+                        .latitud(DEFAULT_LATITUD)
+                        .longitud(DEFAULT_LONGITUD)
                         .ordenParada(1)
                         .fecha(LocalDate.of(2026, 5, 21))
+                        .horaInicio(DEFAULT_HORA_INICIO)
+                        .horaFin(DEFAULT_HORA_FIN)
                         .capacidadMaxima(2)
                         .activa(true)
                         .build()));
@@ -356,8 +422,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Futuro 1")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 6, 20))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -383,11 +453,40 @@ class ParadaServiceImplTest {
                         .origen(ruta.getOrigen())
                         .destino(ruta.getDestino())
                         .activa(false)
+                        .fechaInicio(ruta.getFechaInicio())
+                        .fechaFin(ruta.getFechaFin())
                         .trailerId(ruta.getTrailer().getId())
                         .tecnicoIds(ruta.getTecnicos().stream().map(User::getId).toList())
                         .build()));
 
         assertEquals("RUTA_HAS_ACTIVE_FUTURE_CITAS", ex.getCode());
+    }
+
+    @Test
+    void createRejectsParadaFechaOutsideCampaign() {
+        Ruta ruta = createRutaActivaWithCampaign(
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 30)
+        );
+
+        ApiBusinessException ex = assertThrows(ApiBusinessException.class, () ->
+                paradaService.create(ParadaCreateDTO.builder()
+                        .rutaId(ruta.getId())
+                        .nombre("Castilleja fuera de campaña")
+                        .municipio("Castilleja de la Cuesta")
+                        .provincia("Sevilla")
+                        .direccion("Calle Campaña 1")
+                        .latitud(DEFAULT_LATITUD)
+                        .longitud(DEFAULT_LONGITUD)
+                        .ordenParada(1)
+                        .fecha(LocalDate.of(2026, 5, 1))
+                        .horaInicio(DEFAULT_HORA_INICIO)
+                        .horaFin(DEFAULT_HORA_FIN)
+                        .capacidadMaxima(1)
+                        .activa(true)
+                        .build()));
+
+        assertEquals("PARADA_FECHA_OUTSIDE_RUTA_CAMPAIGN", ex.getCode());
     }
 
     @Test
@@ -408,8 +507,12 @@ class ParadaServiceImplTest {
                 .municipio("Castilleja de la Cuesta")
                 .provincia("Sevilla")
                 .direccion("Calle Uno")
+                .latitud(DEFAULT_LATITUD)
+                .longitud(DEFAULT_LONGITUD)
                 .ordenParada(1)
                 .fecha(LocalDate.of(2026, 4, 22))
+                .horaInicio(DEFAULT_HORA_INICIO)
+                .horaFin(DEFAULT_HORA_FIN)
                 .capacidadMaxima(1)
                 .activa(true)
                 .build());
@@ -421,8 +524,12 @@ class ParadaServiceImplTest {
                         .municipio("Tomares")
                         .provincia("Sevilla")
                         .direccion("Calle Dos")
+                        .latitud(new BigDecimal("37.372000"))
+                        .longitud(new BigDecimal("-6.071000"))
                         .ordenParada(1)
                         .fecha(LocalDate.of(2026, 4, 22))
+                        .horaInicio(DEFAULT_HORA_INICIO)
+                        .horaFin(DEFAULT_HORA_FIN)
                         .capacidadMaxima(1)
                         .activa(true)
                         .build()));
@@ -459,6 +566,28 @@ class ParadaServiceImplTest {
                 .origen("Sevilla")
                 .destino("Castilleja de la Cuesta")
                 .activa(true)
+                .fechaInicio(LocalDate.of(2026, 1, 1))
+                .fechaFin(LocalDate.of(2027, 12, 31))
+                .trailer(trailer)
+                .tecnicos(new java.util.LinkedHashSet<>(tecnicos))
+                .build());
+    }
+
+    private Ruta createRutaActivaWithCampaign(LocalDate fechaInicio, LocalDate fechaFin) {
+        Trailer trailer = trailerRepository.save(Trailer.builder()
+                .codigo("TRL-" + System.nanoTime())
+                .nombre("Trailer campaña")
+                .activo(true)
+                .descripcion("Trailer de pruebas campaña")
+                .build());
+        List<User> tecnicos = List.of(createTecnico());
+        return rutaRepository.save(Ruta.builder()
+                .nombre("Ruta Campaña " + System.nanoTime())
+                .origen("Sevilla")
+                .destino("Granada")
+                .activa(true)
+                .fechaInicio(fechaInicio)
+                .fechaFin(fechaFin)
                 .trailer(trailer)
                 .tecnicos(new java.util.LinkedHashSet<>(tecnicos))
                 .build());

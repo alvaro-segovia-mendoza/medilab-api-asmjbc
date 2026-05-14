@@ -133,6 +133,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/registros-clinicos/**").hasAnyRole("TECNICO", "MEDICO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/historiales-clinicos/pacientes/*").hasAnyRole("PACIENTE", "MEDICO", "ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/api/reservas/disponibilidad").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservas/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasRole("ADMIN")
