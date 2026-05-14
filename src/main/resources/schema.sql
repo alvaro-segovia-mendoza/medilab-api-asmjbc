@@ -94,12 +94,19 @@ CREATE TABLE rutas (
     destino VARCHAR(100) NOT NULL,
     activa BOOLEAN NOT NULL DEFAULT TRUE,
     trailer_id BIGINT NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    descripcion VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ruta_trailer
         FOREIGN KEY (trailer_id)
         REFERENCES trailers(id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
+
+    CONSTRAINT chk_ruta_fechas CHECK (fecha_inicio <= fecha_fin),
 
     INDEX idx_ruta_trailer_id (trailer_id),
     INDEX idx_ruta_activa (activa)
@@ -131,6 +138,8 @@ CREATE TABLE paradas (
     municipio VARCHAR(100) NOT NULL,
     provincia VARCHAR(100) NOT NULL,
     direccion VARCHAR(150) NULL,
+    latitud DECIMAL(9,6) NOT NULL,
+    longitud DECIMAL(9,6) NOT NULL,
     orden_parada INT NOT NULL,
     fecha DATE NOT NULL,
     hora_inicio TIME NOT NULL,
@@ -144,9 +153,13 @@ CREATE TABLE paradas (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     CONSTRAINT uq_parada_ruta_fecha_orden UNIQUE (ruta_id, fecha, orden_parada),
-    CONSTRAINT chk_parada_horario_fijo CHECK (hora_inicio = '09:00:00' AND hora_fin = '15:00:00'),
     CONSTRAINT chk_parada_capacidad_tecnicos CHECK (capacidad_maxima BETWEEN 1 AND 2),
+    CONSTRAINT chk_parada_latitud CHECK (latitud BETWEEN -90 AND 90),
+    CONSTRAINT chk_parada_longitud CHECK (longitud BETWEEN -180 AND 180),
     CONSTRAINT chk_parada_horas_validas CHECK (hora_inicio < hora_fin),
 
     INDEX idx_parada_activa_fecha_hora (activa, fecha, hora_inicio),

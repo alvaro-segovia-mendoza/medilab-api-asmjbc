@@ -35,9 +35,9 @@ INSERT IGNORE INTO trailers (id, codigo, nombre, activo, descripcion) VALUES
 (1, 'TRL-001', 'Trailer Diagnostico Norte', TRUE, 'Unidad movil para pruebas diagnosticas generales'),
 (2, 'TRL-002', 'Trailer Analiticas Sierra', TRUE, 'Unidad movil para analiticas y revisiones preventivas');
 
-INSERT IGNORE INTO rutas (id, nombre, origen, destino, activa, trailer_id) VALUES
-(1, 'Ruta Vega de Granada - Abril 2026', 'Granada', 'Loja', TRUE, 1),
-(2, 'Ruta Sierra Norte Cordobesa - Junio 2026', 'Castilleja de la Cuesta', 'Cardena', TRUE, 2);
+INSERT IGNORE INTO rutas (id, nombre, origen, destino, activa, trailer_id, fecha_inicio, fecha_fin, descripcion) VALUES
+(1, 'Ruta Vega de Granada - Abril 2026', 'Granada', 'Loja', TRUE, 1, '2026-04-20', '2026-04-25', 'Campaña de diagnóstico móvil en la Vega de Granada'),
+(2, 'Ruta Sierra Norte Cordobesa - Junio 2026', 'Castilleja de la Cuesta', 'Cardena', TRUE, 2, '2026-06-09', '2026-06-14', 'Campaña preventiva en la Sierra Norte');
 
 INSERT IGNORE INTO ruta_tecnicos (ruta_id, tecnico_id) VALUES
 (1, 6),
@@ -46,17 +46,17 @@ INSERT IGNORE INTO ruta_tecnicos (ruta_id, tecnico_id) VALUES
 (2, 7);
 
 INSERT IGNORE INTO paradas (
-    id, ruta_id, nombre, municipio, provincia, direccion,
+    id, ruta_id, nombre, municipio, provincia, direccion, latitud, longitud,
     orden_parada, fecha, hora_inicio, hora_fin, capacidad_maxima, activa
 ) VALUES
 -- Ruta pasada: abril de 2026.
-(1, 1, 'Centro de Salud de Atarfe', 'Atarfe', 'Granada', 'Av. de la Diputacion, 12', 1, '2026-04-21', '09:00:00', '15:00:00', 2, TRUE),
-(2, 1, 'Consultorio de Santa Fe', 'Santa Fe', 'Granada', 'Calle Real, 8', 2, '2026-04-22', '09:00:00', '15:00:00', 2, TRUE),
-(3, 1, 'Unidad movil de Loja', 'Loja', 'Granada', 'Paseo Narvaez, s/n', 3, '2026-04-23', '09:00:00', '15:00:00', 2, TRUE),
+(1, 1, 'Centro de Salud de Atarfe', 'Atarfe', 'Granada', 'Avenida de Andalucia, 12', 37.223563, -3.687595, 1, '2026-04-21', '09:00:00', '15:00:00', 2, TRUE),
+(2, 1, 'Consultorio de Santa Fe', 'Santa Fe', 'Granada', 'Calle Real, 44', 37.188253, -3.718705, 2, '2026-04-22', '09:00:00', '15:00:00', 2, TRUE),
+(3, 1, 'Unidad movil de Loja', 'Loja', 'Granada', 'Avenida de los Angeles, 3', 37.168151, -4.151287, 3, '2026-04-23', '09:00:00', '15:00:00', 2, TRUE),
 -- Ruta futura: junio de 2026.
-(4, 2, 'Centro de Salud de Castilleja de la Cuesta', 'Castilleja de la Cuesta', 'Sevilla', 'Av. Juan Carlos I, s/n', 1, '2026-06-10', '09:00:00', '15:00:00', 2, TRUE),
-(5, 2, 'Recinto sanitario movil de Bormujos', 'Bormujos', 'Sevilla', 'Zona anexa al hospital', 2, '2026-06-11', '09:00:00', '15:00:00', 2, TRUE),
-(6, 2, 'Centro de Salud de Cardena', 'Cardena', 'Cordoba', 'Calle del Consultorio, 2', 3, '2026-06-12', '09:00:00', '15:00:00', 2, TRUE);
+(4, 2, 'Centro de Salud de Castilleja de la Cuesta', 'Castilleja de la Cuesta', 'Sevilla', 'Calle Real, 101', 37.386356, -6.051731, 1, '2026-06-10', '09:00:00', '15:00:00', 2, TRUE),
+(5, 2, 'Recinto sanitario movil de Bormujos', 'Bormujos', 'Sevilla', 'Avenida del Aljarafe, 5', 37.373923, -6.070802, 2, '2026-06-11', '09:00:00', '15:00:00', 2, TRUE),
+(6, 2, 'Centro de Salud de Cardena', 'Cardena', 'Cordoba', 'Calle Jose Marron, 14', 38.270689, -4.323966, 3, '2026-06-12', '09:00:00', '15:00:00', 2, TRUE);
 
 INSERT IGNORE INTO slot_cita (id, parada_id, fecha_hora_inicio, fecha_hora_fin, cupo_numero, estado) VALUES
 -- Abril: slots reservados para citas ya realizadas y un hueco cancelado/liberado.
