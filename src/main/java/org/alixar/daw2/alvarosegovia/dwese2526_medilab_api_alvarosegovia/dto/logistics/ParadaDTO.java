@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -18,6 +20,8 @@ public class ParadaDTO {
     private String municipio;
     private String provincia;
     private String direccion;
+    private BigDecimal latitud;
+    private BigDecimal longitud;
     private Integer ordenParada;
     private LocalDate fecha;
     private LocalTime horaInicio;
@@ -27,4 +31,6 @@ public class ParadaDTO {
     private Long rutaId;
     private String rutaNombre;
     private String trailerNombre;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

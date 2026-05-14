@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -74,6 +75,7 @@ public class RutaServiceImpl implements RutaService {
 
     @Override
     public RutaDTO create(RutaCreateDTO dto) {
+        validateRutaCampaignDates(dto.getFechaInicio(), dto.getFechaFin());
         Trailer trailer = findActiveTrailer(dto.getTrailerId());
         Set<User> tecnicos = resolveTecnicos(dto.getTecnicoIds());
 
@@ -82,6 +84,9 @@ public class RutaServiceImpl implements RutaService {
                 .origen(dto.getOrigen())
                 .destino(dto.getDestino())
                 .activa(dto.getActiva() == null || dto.getActiva())
+                .fechaInicio(dto.getFechaInicio())
+                .fechaFin(dto.getFechaFin())
+                .descripcion(dto.getDescripcion())
                 .trailer(trailer)
                 .tecnicos(tecnicos)
                 .build();
@@ -90,6 +95,7 @@ public class RutaServiceImpl implements RutaService {
 
     @Override
     public RutaDTO update(RutaUpdateDTO dto) {
+        validateRutaCampaignDates(dto.getFechaInicio(), dto.getFechaFin());
         Ruta ruta = findRuta(dto.getId());
         Trailer trailer = findActiveTrailer(dto.getTrailerId());
         Set<User> tecnicos = resolveTecnicos(dto.getTecnicoIds());
@@ -100,6 +106,9 @@ public class RutaServiceImpl implements RutaService {
         ruta.setOrigen(dto.getOrigen());
         ruta.setDestino(dto.getDestino());
         ruta.setActiva(dto.getActiva());
+        ruta.setFechaInicio(dto.getFechaInicio());
+        ruta.setFechaFin(dto.getFechaFin());
+        ruta.setDescripcion(dto.getDescripcion());
         ruta.setTrailer(trailer);
         ruta.setTecnicos(tecnicos);
         return RutaMapper.toDTO(rutaRepository.save(ruta));
@@ -190,5 +199,11 @@ public class RutaServiceImpl implements RutaService {
                 LocalDateTime.now(),
                 rutaId
         );
+    }
+
+    private void validateRutaCampaignDates(LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio != null && fechaFin != null && fechaInicio.isAfter(fechaFin)) {
+            throw ApiBusinessException.badRequest("RUTA_FECHA_INICIO_AFTER_FIN", "api.error.ruta.fechaInicioAfterFin");
+        }
     }
 }

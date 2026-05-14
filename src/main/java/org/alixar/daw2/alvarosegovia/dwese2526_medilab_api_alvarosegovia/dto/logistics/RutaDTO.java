@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.user.UserBasicDTO;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,8 +20,13 @@ public class RutaDTO {
     private String origen;
     private String destino;
     private boolean activa;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
+    private String descripcion;
     private Long trailerId;
     private String trailerNombre;
     private List<Long> tecnicoIds;
     private List<UserBasicDTO> tecnicos;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

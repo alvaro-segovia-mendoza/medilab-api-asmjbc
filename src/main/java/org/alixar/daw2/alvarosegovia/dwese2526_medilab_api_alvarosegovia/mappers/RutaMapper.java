@@ -18,10 +18,15 @@ public class RutaMapper {
                 .origen(entity.getOrigen())
                 .destino(entity.getDestino())
                 .activa(entity.isActiva())
+                .fechaInicio(entity.getFechaInicio())
+                .fechaFin(entity.getFechaFin())
+                .descripcion(entity.getDescripcion())
                 .trailerId(entity.getTrailer() != null ? entity.getTrailer().getId() : null)
                 .trailerNombre(entity.getTrailer() != null ? entity.getTrailer().getNombre() : null)
                 .tecnicoIds(toTecnicoIds(entity))
                 .tecnicos(toTecnicos(entity))
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.logistics;
 
+import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.GeocodingService;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.DisponibilidadParadaDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaCreateDTO;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.logistics.ParadaDTO;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -37,8 +39,6 @@ import java.util.Map;
 public class ParadaServiceImpl implements ParadaService {
 
     private static final long CITA_DURATION_MINUTES = 30;
-    private static final LocalTime DEFAULT_STOP_START_TIME = LocalTime.of(9, 0);
-    private static final LocalTime DEFAULT_STOP_END_TIME = LocalTime.of(15, 0);
     private static final List<Cita.EstadoCita> BLOCKING_APPOINTMENT_STATES = List.of(
             Cita.EstadoCita.PENDIENTE,
             Cita.EstadoCita.CONFIRMADA,
@@ -61,6 +61,9 @@ public class ParadaServiceImpl implements ParadaService {
     @Autowired
     private SlotCitaGenerationService slotCitaGenerationService;
 
+    @Autowired
+    private GeocodingService geocodingService;
+
     @Override
     public List<ParadaDTO> list() {
         return ParadaMapper.toDTOList(paradaRepository.findAll());
@@ -79,14 +82,23 @@ public class ParadaServiceImpl implements ParadaService {
     @Override
     public ParadaDTO create(ParadaCreateDTO dto) {
         Ruta ruta = findRuta(dto.getRutaId());
-        LocalTime horaInicio = DEFAULT_STOP_START_TIME;
-        LocalTime horaFin = DEFAULT_STOP_END_TIME;
+        LocalTime horaInicio = dto.getHoraInicio();
+        LocalTime horaFin = dto.getHoraFin();
 
+        validateFechaWithinRutaCampaign(ruta, dto.getFecha());
         validateSchedule(horaInicio, horaFin);
         validateOperationalConsistency(ruta, dto.getFecha(), horaInicio, horaFin);
         validateCapacityAgainstAssignedTechnicians(ruta, dto.getCapacidadMaxima());
         validateSingleStopPerTrailerPerDay(ruta.getTrailer().getId(), dto.getFecha(), null);
         validateUniqueOrder(ruta.getId(), dto.getFecha(), dto.getOrdenParada(), null);
+
+        BigDecimal latitud = dto.getLatitud();
+        BigDecimal longitud = dto.getLongitud();
+        if (latitud == null || longitud == null) {
+            BigDecimal[] coords = geocodingService.geocode(dto.getDireccion(), dto.getMunicipio(), dto.getProvincia());
+            latitud = coords[0];
+            longitud = coords[1];
+        }
 
         Parada parada = Parada.builder()
                 .ruta(ruta)
@@ -94,6 +106,8 @@ public class ParadaServiceImpl implements ParadaService {
                 .municipio(dto.getMunicipio())
                 .provincia(dto.getProvincia())
                 .direccion(dto.getDireccion())
+                .latitud(latitud)
+                .longitud(longitud)
                 .ordenParada(dto.getOrdenParada())
                 .fecha(dto.getFecha())
                 .horaInicio(horaInicio)
@@ -110,9 +124,10 @@ public class ParadaServiceImpl implements ParadaService {
     public ParadaDTO update(ParadaUpdateDTO dto) {
         Parada parada = getEntity(dto.getId());
         Ruta ruta = findRuta(dto.getRutaId());
-        LocalTime horaInicio = DEFAULT_STOP_START_TIME;
-        LocalTime horaFin = DEFAULT_STOP_END_TIME;
+        LocalTime horaInicio = dto.getHoraInicio();
+        LocalTime horaFin = dto.getHoraFin();
 
+        validateFechaWithinRutaCampaign(ruta, dto.getFecha());
         validateSchedule(horaInicio, horaFin);
         validateOperationalConsistency(ruta, dto.getFecha(), horaInicio, horaFin);
         validateCapacityAgainstAssignedTechnicians(ruta, dto.getCapacidadMaxima());
@@ -120,10 +135,14 @@ public class ParadaServiceImpl implements ParadaService {
         validateUniqueOrder(ruta.getId(), dto.getFecha(), dto.getOrdenParada(), dto.getId());
         boolean requiresSlotReconciliation = requiresSlotReconciliation(parada, dto, horaInicio, horaFin);
 
+        if (dto.getLatitud() == null || dto.getLongitud() == null) {
+            BigDecimal[] coords = geocodingService.geocode(dto.getDireccion(), dto.getMunicipio(), dto.getProvincia());
+            dto.setLatitud(coords[0]);
+            dto.setLongitud(coords[1]);
+        }
+
         parada.setRuta(ruta);
         ParadaMapper.copyToExistingEntity(dto, parada);
-        parada.setHoraInicio(horaInicio);
-        parada.setHoraFin(horaFin);
         parada = paradaRepository.save(parada);
         if (requiresSlotReconciliation) {
             slotCitaGenerationService.reconcileSlots(parada);
@@ -212,6 +231,10 @@ public class ParadaServiceImpl implements ParadaService {
                 .paradaNombre(parada.getNombre())
                 .municipio(parada.getMunicipio())
                 .provincia(parada.getProvincia())
+                .direccion(parada.getDireccion())
+                .latitud(parada.getLatitud())
+                .longitud(parada.getLongitud())
+                .ordenParada(parada.getOrdenParada())
                 .capacidadMaxima(parada.getCapacidadMaxima())
                 .slots(slots)
                 .slotsDisponibles(slotsDisponibles)
@@ -320,6 +343,15 @@ public class ParadaServiceImpl implements ParadaService {
 
         if (trailerAlreadyAssigned) {
             throw ApiBusinessException.badRequest("PARADA_TRAILER_ALREADY_SCHEDULED_FOR_DATE", "api.error.parada.trailerAlreadyScheduledForDate");
+        }
+    }
+
+    private void validateFechaWithinRutaCampaign(Ruta ruta, LocalDate fecha) {
+        if (ruta.getFechaInicio() == null || ruta.getFechaFin() == null || fecha == null) {
+            return;
+        }
+        if (fecha.isBefore(ruta.getFechaInicio()) || fecha.isAfter(ruta.getFechaFin())) {
+            throw ApiBusinessException.badRequest("PARADA_FECHA_OUTSIDE_RUTA_CAMPAIGN", "api.error.parada.fechaOutsideRutaCampaign");
         }
     }
 }

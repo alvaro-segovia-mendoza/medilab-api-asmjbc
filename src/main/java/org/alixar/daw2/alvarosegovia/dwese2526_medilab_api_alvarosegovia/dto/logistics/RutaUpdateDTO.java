@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -30,6 +31,15 @@ public class RutaUpdateDTO {
 
     @NotNull(message = "{validation.logistics.ruta.activa.required}")
     private Boolean activa;
+
+    @NotNull(message = "{validation.logistics.ruta.fechaInicio.required}")
+    private LocalDate fechaInicio;
+
+    @NotNull(message = "{validation.logistics.ruta.fechaFin.required}")
+    private LocalDate fechaFin;
+
+    @Size(max = 500, message = "{validation.logistics.ruta.descripcion.size}")
+    private String descripcion;
 
     @NotNull(message = "{validation.logistics.ruta.trailerId.required}")
     private Long trailerId;

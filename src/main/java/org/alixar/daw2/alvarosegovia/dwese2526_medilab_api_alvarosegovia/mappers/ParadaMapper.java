@@ -17,6 +17,8 @@ public class ParadaMapper {
                 .municipio(entity.getMunicipio())
                 .provincia(entity.getProvincia())
                 .direccion(entity.getDireccion())
+                .latitud(entity.getLatitud())
+                .longitud(entity.getLongitud())
                 .ordenParada(entity.getOrdenParada())
                 .fecha(entity.getFecha())
                 .horaInicio(entity.getHoraInicio())
@@ -26,6 +28,8 @@ public class ParadaMapper {
                 .rutaId(entity.getRuta() != null ? entity.getRuta().getId() : null)
                 .rutaNombre(entity.getRuta() != null ? entity.getRuta().getNombre() : null)
                 .trailerNombre(entity.getRuta() != null && entity.getRuta().getTrailer() != null ? entity.getRuta().getTrailer().getNombre() : null)
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 
@@ -54,8 +58,12 @@ public class ParadaMapper {
         entity.setMunicipio(dto.getMunicipio());
         entity.setProvincia(dto.getProvincia());
         entity.setDireccion(dto.getDireccion());
+        entity.setLatitud(dto.getLatitud());
+        entity.setLongitud(dto.getLongitud());
         entity.setOrdenParada(dto.getOrdenParada());
         entity.setFecha(dto.getFecha());
+        entity.setHoraInicio(dto.getHoraInicio());
+        entity.setHoraFin(dto.getHoraFin());
         entity.setCapacidadMaxima(dto.getCapacidadMaxima());
         entity.setActiva(dto.getActiva());
     }

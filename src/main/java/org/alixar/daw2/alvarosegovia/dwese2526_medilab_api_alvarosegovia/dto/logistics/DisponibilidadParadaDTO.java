@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -16,6 +17,10 @@ public class DisponibilidadParadaDTO {
     private String paradaNombre;
     private String municipio;
     private String provincia;
+    private String direccion;
+    private BigDecimal latitud;
+    private BigDecimal longitud;
+    private Integer ordenParada;
     private Integer capacidadMaxima;
     private List<SlotDisponibilidadDTO> slots;
     private List<java.time.LocalDateTime> slotsDisponibles;

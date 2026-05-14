@@ -2,6 +2,9 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.lo
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -10,7 +13,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -40,11 +45,29 @@ public class ParadaCreateDTO {
     @Size(max = 150, message = "{validation.logistics.parada.direccion.size}")
     private String direccion;
 
+    @Schema(description = "Latitud de la parada. Si no se indica, se geocodifica automáticamente desde la dirección.", example = "37.386230")
+    @DecimalMin(value = "-90.0", message = "{validation.logistics.parada.latitud.range}")
+    @DecimalMax(value = "90.0", message = "{validation.logistics.parada.latitud.range}")
+    @Digits(integer = 3, fraction = 6, message = "{validation.logistics.parada.latitud.format}")
+    private BigDecimal latitud;
+
+    @Schema(description = "Longitud de la parada. Si no se indica, se geocodifica automáticamente desde la dirección.", example = "-6.051110")
+    @DecimalMin(value = "-180.0", message = "{validation.logistics.parada.longitud.range}")
+    @DecimalMax(value = "180.0", message = "{validation.logistics.parada.longitud.range}")
+    @Digits(integer = 3, fraction = 6, message = "{validation.logistics.parada.longitud.format}")
+    private BigDecimal longitud;
+
     @NotNull(message = "{validation.logistics.parada.ordenParada.required}")
     private Integer ordenParada;
 
     @NotNull(message = "{validation.logistics.parada.fecha.required}")
     private LocalDate fecha;
+
+    @NotNull(message = "{validation.logistics.parada.horaInicio.required}")
+    private LocalTime horaInicio;
+
+    @NotNull(message = "{validation.logistics.parada.horaFin.required}")
+    private LocalTime horaFin;
 
     @NotNull(message = "{validation.logistics.parada.capacidadMaxima.required}")
     @Positive(message = "{validation.logistics.parada.capacidadMaxima.positive}")
