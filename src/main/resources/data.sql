@@ -55,7 +55,7 @@ INSERT IGNORE INTO paradas (
 (3, 1, 'Unidad movil de Loja', 'Loja', 'Granada', 'Avenida de los Angeles, 3', 37.168151, -4.151287, 3, '2026-04-23', '09:00:00', '15:00:00', 2, TRUE),
 -- Ruta futura: junio de 2026.
 (4, 2, 'Centro de Salud de Castilleja de la Cuesta', 'Castilleja de la Cuesta', 'Sevilla', 'Calle Real, 101', 37.386356, -6.051731, 1, '2026-06-10', '09:00:00', '15:00:00', 2, TRUE),
-(5, 2, 'Recinto sanitario movil de Bormujos', 'Bormujos', 'Sevilla', 'Avenida del Aljarafe, 5', 37.373923, -6.070802, 2, '2026-06-11', '09:00:00', '15:00:00', 2, TRUE),
+(5, 2, 'Centro de Salud Fuensanta', 'Córdoba', 'Córdoba', 'Calle Periodista Eduardo Baro, s/n', 37.8769, -4.7604, 2, '2026-06-11', '09:00:00', '15:00:00', 2, TRUE),
 (6, 2, 'Centro de Salud de Cardena', 'Cardena', 'Cordoba', 'Calle Jose Marron, 14', 38.270689, -4.323966, 3, '2026-06-12', '09:00:00', '15:00:00', 2, TRUE);
 
 INSERT IGNORE INTO slot_cita (id, parada_id, fecha_hora_inicio, fecha_hora_fin, cupo_numero, estado) VALUES
