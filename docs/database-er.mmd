@@ -1,22 +1,19 @@
-# Diagrama de base de datos — MediLab
-
-```mermaid
 erDiagram
-    users {
+    USERS {
         BIGINT id PK
         VARCHAR email UK
         VARCHAR password_hash
         BOOLEAN active
         BOOLEAN account_non_locked
-        INTEGER failed_login_attempts
-        BOOLEAN email_verified
-        BOOLEAN must_change_password
         DATETIME last_password_change
         DATETIME password_expires_at
+        INT failed_login_attempts
+        BOOLEAN email_verified
+        BOOLEAN must_change_password
     }
 
-    user_profiles {
-        BIGINT user_id PK "FK -> users.id"
+    USER_PROFILES {
+        BIGINT user_id PK, FK
         VARCHAR first_name
         VARCHAR last_name
         VARCHAR phone_number
@@ -32,30 +29,19 @@ erDiagram
         DATETIME updated_at
     }
 
-    roles {
+    ROLES {
         BIGINT id PK
         VARCHAR name UK
         VARCHAR display_name
         VARCHAR description
     }
 
-    user_roles {
-        BIGINT user_id FK
-        BIGINT role_id FK
+    USER_ROLES {
+        BIGINT user_id PK, FK
+        BIGINT role_id PK, FK
     }
 
-    password_reset_tokens {
-        BIGINT id PK
-        BIGINT user_id FK
-        VARCHAR token_hash
-        DATETIME expires_at
-        DATETIME used_at
-        DATETIME created_at
-        VARCHAR request_ip
-        VARCHAR user_agent
-    }
-
-    trailers {
+    TRAILERS {
         BIGINT id PK
         VARCHAR codigo UK
         VARCHAR nombre
@@ -63,13 +49,13 @@ erDiagram
         VARCHAR descripcion
     }
 
-    rutas {
+    RUTAS {
         BIGINT id PK
-        BIGINT trailer_id FK
         VARCHAR nombre
         VARCHAR origen
         VARCHAR destino
         BOOLEAN activa
+        BIGINT trailer_id FK
         DATE fecha_inicio
         DATE fecha_fin
         VARCHAR descripcion
@@ -77,12 +63,12 @@ erDiagram
         DATETIME updated_at
     }
 
-    ruta_tecnicos {
-        BIGINT ruta_id FK
-        BIGINT tecnico_id FK
+    RUTA_TECNICOS {
+        BIGINT ruta_id PK, FK
+        BIGINT tecnico_id PK, FK
     }
 
-    paradas {
+    PARADAS {
         BIGINT id PK
         BIGINT ruta_id FK
         VARCHAR nombre
@@ -91,38 +77,38 @@ erDiagram
         VARCHAR direccion
         DECIMAL latitud
         DECIMAL longitud
-        INTEGER orden_parada
+        INT orden_parada
         DATE fecha
         TIME hora_inicio
         TIME hora_fin
-        INTEGER capacidad_maxima
+        INT capacidad_maxima
         BOOLEAN activa
         DATETIME created_at
         DATETIME updated_at
     }
 
-    slot_cita {
+    SLOT_CITA {
         BIGINT id PK
         BIGINT parada_id FK
         DATETIME fecha_hora_inicio
         DATETIME fecha_hora_fin
-        INTEGER cupo_numero
-        VARCHAR estado "DISPONIBLE|RESERVADO|NO_DISPONIBLE"
+        INT cupo_numero
+        ENUM estado
     }
 
-    cita {
+    CITA {
         BIGINT id_cita PK
+        VARCHAR tipo_prueba
+        ENUM estado
         BIGINT paciente_id FK
         BIGINT tecnico_id FK
         BIGINT doctor_id FK
-        BIGINT slot_id UK "FK -> slot_cita.id"
-        VARCHAR tipo_prueba
-        VARCHAR estado "PENDIENTE|CONFIRMADA|RESULTADOS_SUBIDOS|RESULTADOS_APROBADOS|CANCELADA"
+        BIGINT slot_id FK, UK
         DATETIME created_at
         DATETIME updated_at
     }
 
-    registros_clinicos {
+    REGISTROS_CLINICOS {
         BIGINT id PK
         BIGINT cita_id FK
         BIGINT paciente_id FK
@@ -133,25 +119,42 @@ erDiagram
         TEXT observaciones_tecnico
         TEXT observaciones_medico
         TEXT receta_o_solucion
-        VARCHAR estado "BORRADOR|PENDIENTE_REVISION|CONFIRMADO|RECHAZADO"
+        ENUM estado
         DATETIME confirmed_at
         DATETIME created_at
         DATETIME updated_at
     }
 
-    users ||--|| user_profiles : "perfil"
-    users ||--o{ password_reset_tokens : "tokens reset"
-    users }o--o{ roles : "user_roles"
-    users }o--o{ rutas : "ruta_tecnicos"
-    users ||--o{ cita : "paciente"
-    users ||--o{ cita : "tecnico"
-    users ||--o{ cita : "doctor"
-    users ||--o{ registros_clinicos : "paciente"
-    users ||--o{ registros_clinicos : "tecnico"
-    users ||--o{ registros_clinicos : "medico"
-    trailers ||--o{ rutas : "trailer_id"
-    rutas ||--o{ paradas : "ruta_id"
-    paradas ||--o{ slot_cita : "parada_id"
-    slot_cita ||--o| cita : "slot_id"
-    cita ||--o{ registros_clinicos : "cita_id"
-```
+    PASSWORD_RESET_TOKENS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR token_hash
+        DATETIME expires_at
+        DATETIME used_at
+        DATETIME created_at
+        VARCHAR request_ip
+        VARCHAR user_agent
+    }
+
+    USERS ||--|| USER_PROFILES : "tiene perfil"
+    USERS ||--o{ USER_ROLES : "asigna"
+    ROLES ||--o{ USER_ROLES : "pertenece"
+
+    TRAILERS ||--o{ RUTAS : "opera"
+    RUTAS ||--o{ RUTA_TECNICOS : "asigna"
+    USERS ||--o{ RUTA_TECNICOS : "participa como tecnico"
+
+    RUTAS ||--o{ PARADAS : "contiene"
+    PARADAS ||--o{ SLOT_CITA : "genera"
+    SLOT_CITA ||--o| CITA : "reserva"
+
+    USERS ||--o{ CITA : "es paciente"
+    USERS ||--o{ CITA : "es tecnico"
+    USERS ||--o{ CITA : "es doctor"
+
+    CITA ||--o{ REGISTROS_CLINICOS : "produce"
+    USERS ||--o{ REGISTROS_CLINICOS : "es paciente"
+    USERS ||--o{ REGISTROS_CLINICOS : "es tecnico"
+    USERS ||--o{ REGISTROS_CLINICOS : "es medico"
+
+    USERS ||--o{ PASSWORD_RESET_TOKENS : "solicita"
