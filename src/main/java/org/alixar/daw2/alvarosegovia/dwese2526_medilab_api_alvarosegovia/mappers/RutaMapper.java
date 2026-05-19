@@ -8,6 +8,9 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Mapper utilitario para convertir rutas entre su modelo de persistencia y los DTOs expuestos.
+ */
 public class RutaMapper {
 
     public static RutaDTO toDTO(Ruta entity) {

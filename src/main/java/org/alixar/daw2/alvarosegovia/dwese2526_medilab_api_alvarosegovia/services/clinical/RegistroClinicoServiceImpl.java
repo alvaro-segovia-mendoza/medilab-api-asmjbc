@@ -12,6 +12,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.mappers
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.CitaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RegistroClinicoRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,9 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Implementacion del servicio que gobierna el ciclo de vida de los registros clinicos.
+ */
 @Service
 @Transactional
 public class RegistroClinicoServiceImpl implements RegistroClinicoService {
+
+    private static final Logger logger = LoggerFactory.getLogger(RegistroClinicoServiceImpl.class);
 
     @Autowired
     private RegistroClinicoRepository registroClinicoRepository;
@@ -36,6 +43,7 @@ public class RegistroClinicoServiceImpl implements RegistroClinicoService {
 
     @Override
     public RegistroClinicoDTO create(RegistroClinicoCreateDTO dto) {
+        logger.info("Creando registro clinico para citaId={}", dto.getCitaId());
         Cita cita = findCita(dto.getCitaId());
         User tecnico = resolveCurrentTechnician(dto.getTecnicoId());
 
@@ -52,11 +60,14 @@ public class RegistroClinicoServiceImpl implements RegistroClinicoService {
                 .estado(RegistroClinico.EstadoRegistroClinico.BORRADOR)
                 .build();
 
-        return RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        RegistroClinicoDTO created = RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        logger.info("Registro clinico creado con id={}", created.getId());
+        return created;
     }
 
     @Override
     public RegistroClinicoDTO submitForReview(Long id) {
+        logger.info("Enviando registro clinico {} a revision medica", id);
         RegistroClinico registro = findRegistro(id);
         assertCanAccessRegistro(registro);
 
@@ -67,11 +78,14 @@ public class RegistroClinicoServiceImpl implements RegistroClinicoService {
         registro.setEstado(RegistroClinico.EstadoRegistroClinico.PENDIENTE_REVISION);
         registro.getCita().setEstado(Cita.EstadoCita.RESULTADOS_SUBIDOS);
 
-        return RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        RegistroClinicoDTO updated = RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        logger.info("Registro clinico {} marcado como pendiente de revision", id);
+        return updated;
     }
 
     @Override
     public RegistroClinicoDTO review(Long id, RegistroClinicoReviewDTO dto) {
+        logger.info("Revisando registro clinico {} con aprobado={}", id, dto.getAprobado());
         RegistroClinico registro = findRegistro(id);
         assertCanReviewRegistro(registro);
         User medico = resolveReviewingDoctor(null);
@@ -99,7 +113,9 @@ public class RegistroClinicoServiceImpl implements RegistroClinicoService {
             registro.getCita().setEstado(Cita.EstadoCita.CONFIRMADA);
         }
 
-        return RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        RegistroClinicoDTO reviewed = RegistroClinicoMapper.toDTO(registroClinicoRepository.save(registro));
+        logger.info("Revision finalizada para registro {} con estado={}", id, reviewed.getEstado());
+        return reviewed;
     }
 
     @Override

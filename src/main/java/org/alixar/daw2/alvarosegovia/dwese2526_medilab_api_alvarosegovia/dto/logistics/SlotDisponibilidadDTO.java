@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de SlotDisponibilidadDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

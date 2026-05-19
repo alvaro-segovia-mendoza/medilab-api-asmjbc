@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * DTO usado en el flujo de autenticacion y credenciales: PasswordResetDTO.
+ */
 @Data
 public class PasswordResetDTO {
     @NotBlank(message = "{validation.auth.reset.token.required}")

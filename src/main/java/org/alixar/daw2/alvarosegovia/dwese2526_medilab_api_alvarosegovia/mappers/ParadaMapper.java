@@ -7,6 +7,9 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 
 import java.util.List;
 
+/**
+ * Mapper utilitario para convertir entidades de parada a DTOs logistico-operativos.
+ */
 public class ParadaMapper {
 
     public static ParadaDTO toDTO(Parada entity) {

@@ -9,6 +9,9 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO usado en el dominio clinico para transportar datos de CitaDetailDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

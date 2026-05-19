@@ -23,7 +23,10 @@ import java.time.LocalTime;
         },
         indexes = {
                 @Index(name = "idx_parada_activa_fecha_hora", columnList = "activa, fecha, hora_inicio"),
-                @Index(name = "idx_parada_activa_fecha_ruta_orden", columnList = "activa, fecha, ruta_id, orden_parada")
+                /**
+ * Entidad JPA que representa una parada operativa asociada a una ruta y una fecha concretas.
+ */
+@Index(name = "idx_parada_activa_fecha_ruta_orden", columnList = "activa, fecha, ruta_id, orden_parada")
         }
 )
 @Data

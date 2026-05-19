@@ -18,6 +18,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Filtro que extrae y valida el JWT de las peticiones protegidas.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

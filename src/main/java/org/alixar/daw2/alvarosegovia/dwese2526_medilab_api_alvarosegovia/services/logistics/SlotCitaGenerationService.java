@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Servicio encargado de generar y reconciliar slots reservables para una parada.
+ */
 @Service
 @Transactional
 public class SlotCitaGenerationService {

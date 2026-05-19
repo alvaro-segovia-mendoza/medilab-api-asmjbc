@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entidad JPA que modela una ruta operativa asociada a un trailer y a sus tecnicos.
+ */
 @Entity
 @Table(name = "rutas")
 @EntityListeners(AuditingEntityListener.class)

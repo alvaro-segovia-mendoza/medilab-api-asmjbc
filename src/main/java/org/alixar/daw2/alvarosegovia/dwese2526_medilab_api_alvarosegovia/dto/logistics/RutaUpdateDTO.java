@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de RutaUpdateDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

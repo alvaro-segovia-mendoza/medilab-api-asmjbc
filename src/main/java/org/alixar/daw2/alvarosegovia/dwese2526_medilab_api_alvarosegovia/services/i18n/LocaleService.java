@@ -7,6 +7,9 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Servicio de apoyo para resolver y normalizar el locale activo de la aplicacion.
+ */
 @Service
 public class LocaleService {
 

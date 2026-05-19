@@ -10,6 +10,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repositorio de acceso a datos para la entidad Parada.
+ */
 public interface ParadaRepository extends JpaRepository<Parada, Long> {
     @Override
     @EntityGraph(attributePaths = {"ruta", "ruta.trailer", "ruta.tecnicos", "ruta.tecnicos.profile"})

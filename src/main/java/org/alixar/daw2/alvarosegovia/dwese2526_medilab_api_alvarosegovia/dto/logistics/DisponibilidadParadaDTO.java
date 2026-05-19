@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de DisponibilidadParadaDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

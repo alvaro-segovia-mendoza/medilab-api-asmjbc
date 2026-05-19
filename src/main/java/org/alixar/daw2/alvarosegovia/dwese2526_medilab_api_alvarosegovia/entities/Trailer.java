@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entidad JPA que representa un trailer movil disponible para operar rutas.
+ */
 @Entity
 @Table(name = "trailers")
 @Data

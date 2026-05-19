@@ -15,6 +15,9 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Servicio encargado de resolver coordenadas geograficas a partir de una direccion postal.
+ */
 @Service
 public class GeocodingService {
 

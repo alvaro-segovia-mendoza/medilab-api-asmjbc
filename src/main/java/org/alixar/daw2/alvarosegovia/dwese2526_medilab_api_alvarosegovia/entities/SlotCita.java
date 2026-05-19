@@ -15,7 +15,10 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(name = "uq_slot_parada_inicio_cupo", columnNames = {"parada_id", "fecha_hora_inicio", "cupo_numero"})
         },
         indexes = {
-                @Index(name = "idx_slot_estado_inicio", columnList = "estado, fecha_hora_inicio")
+                /**
+ * Entidad JPA que representa una franja reservable dentro de una parada.
+ */
+@Index(name = "idx_slot_estado_inicio", columnList = "estado, fecha_hora_inicio")
         }
 )
 @Data

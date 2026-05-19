@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * DTO usado en el flujo de autenticacion y credenciales: AuthRequestDTO.
+ */
 @Data
 public class AuthRequestDTO {
 

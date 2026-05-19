@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Servicio OAuth2 que normaliza el perfil recibido de Google y asegura el usuario local.
+ */
 @Service
 public class GoogleOAuth2UserService extends DefaultOAuth2UserService {
 

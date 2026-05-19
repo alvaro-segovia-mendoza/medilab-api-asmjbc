@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+/**
+ * Repositorio de acceso a datos para la entidad RegistroClinico.
+ */
 public interface RegistroClinicoRepository extends JpaRepository<RegistroClinico, Long> {
 
     @EntityGraph(attributePaths = {"cita", "paciente", "paciente.profile", "tecnico", "tecnico.profile", "medico", "medico.profile"})

@@ -5,6 +5,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.dto.log
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Parada;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Ruta;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.ParadaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +17,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementacion del servicio que compone la disponibilidad reservable de rutas y paradas.
+ */
 @Service
 @Transactional(readOnly = true)
 public class ReservaDisponibilidadServiceImpl implements ReservaDisponibilidadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReservaDisponibilidadServiceImpl.class);
 
     @Autowired
     private ParadaRepository paradaRepository;
@@ -28,6 +35,7 @@ public class ReservaDisponibilidadServiceImpl implements ReservaDisponibilidadSe
     @Override
     public List<RutaReservableDTO> listReservableRoutes(LocalDate fechaDesde) {
         LocalDate effectiveDate = fechaDesde != null ? fechaDesde : LocalDate.now();
+        logger.info("Calculando rutas reservables desde fecha={}", effectiveDate);
         List<Parada> paradas = paradaRepository.findByActivaTrueAndFechaGreaterThanEqualOrderByRutaIdAscFechaAscOrdenParadaAsc(effectiveDate);
         Map<Long, RutaReservableDTO> rutas = new LinkedHashMap<>();
 
@@ -55,6 +63,8 @@ public class ReservaDisponibilidadServiceImpl implements ReservaDisponibilidadSe
             rutaReservable.getParadas().add(disponibilidad);
         }
 
-        return new ArrayList<>(rutas.values());
+        List<RutaReservableDTO> result = new ArrayList<>(rutas.values());
+        logger.info("Disponibilidad reservable calculada: rutas={}", result.size());
+        return result;
     }
 }

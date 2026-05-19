@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * DTO usado en el flujo de autenticacion y credenciales: RegisterRequestDTO.
+ */
 @Data
 @Schema(description = "Datos necesarios para registrar un paciente con email y confirmación de contraseña.")
 public class RegisterRequestDTO {

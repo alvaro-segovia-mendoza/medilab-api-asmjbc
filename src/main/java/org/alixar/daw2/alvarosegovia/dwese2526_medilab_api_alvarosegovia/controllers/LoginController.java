@@ -1,12 +1,19 @@
 package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/**
+ * Controlador MVC que prepara la vista de inicio de sesion.
+ */
 @Controller
 public class LoginController {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
 
     /**
@@ -20,19 +27,13 @@ public class LoginController {
      */
     @GetMapping("/login")
     public String login(HttpServletRequest request, Model model) {
-        // Recuperar el mensaje de error desde la sesión
+        logger.info("Renderizando pagina de login");
         String errorMessage = (String) request.getSession().getAttribute("errorMessage");
-
-
-
-
-        // Si existe un mensaje de error, añadirlo al modelo y limpiar la sesión
         if (errorMessage != null) {
+            logger.warn("Mostrando mensaje de error previo en login");
             model.addAttribute("errorMessage", errorMessage);
-            request.getSession().removeAttribute("errorMessage"); // Limpiar el mensaje después de mostrarlo
+            request.getSession().removeAttribute("errorMessage");
         }
-        return "views/login/login"; // Redirige a una plantilla personalizada de login
+        return "views/login/login";
     }
-
 }
-

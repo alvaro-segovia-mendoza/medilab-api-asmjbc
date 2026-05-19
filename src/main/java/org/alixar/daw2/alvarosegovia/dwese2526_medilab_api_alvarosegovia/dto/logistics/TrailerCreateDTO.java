@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de TrailerCreateDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

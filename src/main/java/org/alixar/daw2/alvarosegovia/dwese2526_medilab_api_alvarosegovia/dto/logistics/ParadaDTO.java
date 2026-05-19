@@ -10,6 +10,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de ParadaDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

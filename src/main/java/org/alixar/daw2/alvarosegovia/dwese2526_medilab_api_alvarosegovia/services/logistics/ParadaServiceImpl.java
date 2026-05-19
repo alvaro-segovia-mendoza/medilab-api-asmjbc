@@ -18,6 +18,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.reposit
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.ParadaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.SlotCitaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +36,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementacion del servicio logistico de paradas y conciliacion de slots.
+ */
 @Service
 @Transactional
 public class ParadaServiceImpl implements ParadaService {
 
     private static final long CITA_DURATION_MINUTES = 30;
+    private static final Logger logger = LoggerFactory.getLogger(ParadaServiceImpl.class);
     private static final List<Cita.EstadoCita> BLOCKING_APPOINTMENT_STATES = List.of(
             Cita.EstadoCita.PENDIENTE,
             Cita.EstadoCita.CONFIRMADA,
@@ -81,6 +87,7 @@ public class ParadaServiceImpl implements ParadaService {
 
     @Override
     public ParadaDTO create(ParadaCreateDTO dto) {
+        logger.info("Creando parada para rutaId={} en fecha={}", dto.getRutaId(), dto.getFecha());
         Ruta ruta = findRuta(dto.getRutaId());
         LocalTime horaInicio = dto.getHoraInicio();
         LocalTime horaFin = dto.getHoraFin();
@@ -117,11 +124,14 @@ public class ParadaServiceImpl implements ParadaService {
                 .build();
         parada = paradaRepository.save(parada);
         slotCitaGenerationService.reconcileSlots(parada);
-        return ParadaMapper.toDTO(parada);
+        ParadaDTO created = ParadaMapper.toDTO(parada);
+        logger.info("Parada creada con id={}", created.getId());
+        return created;
     }
 
     @Override
     public ParadaDTO update(ParadaUpdateDTO dto) {
+        logger.info("Actualizando parada id={}", dto.getId());
         Parada parada = getEntity(dto.getId());
         Ruta ruta = findRuta(dto.getRutaId());
         LocalTime horaInicio = dto.getHoraInicio();
@@ -147,15 +157,19 @@ public class ParadaServiceImpl implements ParadaService {
         if (requiresSlotReconciliation) {
             slotCitaGenerationService.reconcileSlots(parada);
         }
-        return ParadaMapper.toDTO(parada);
+        ParadaDTO updated = ParadaMapper.toDTO(parada);
+        logger.info("Parada actualizada con id={}", updated.getId());
+        return updated;
     }
 
     @Override
     public void delete(Long id) {
+        logger.info("Eliminando parada id={}", id);
         if (!paradaRepository.existsById(id)) {
             throw new ResourceNotFoundException("parada", "id", id);
         }
         paradaRepository.deleteById(id);
+        logger.info("Parada eliminada con id={}", id);
     }
 
     @Override

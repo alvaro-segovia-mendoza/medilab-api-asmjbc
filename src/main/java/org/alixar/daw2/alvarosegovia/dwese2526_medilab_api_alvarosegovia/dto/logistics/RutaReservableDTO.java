@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de RutaReservableDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

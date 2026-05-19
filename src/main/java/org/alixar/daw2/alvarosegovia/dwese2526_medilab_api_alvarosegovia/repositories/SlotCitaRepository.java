@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repositorio de acceso a datos para la entidad SlotCita.
+ */
 public interface SlotCitaRepository extends JpaRepository<SlotCita, Long> {
 
     @Override

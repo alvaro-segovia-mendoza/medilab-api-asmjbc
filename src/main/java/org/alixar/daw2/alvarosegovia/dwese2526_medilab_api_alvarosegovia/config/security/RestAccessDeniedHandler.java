@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Manejador REST para accesos denegados por falta de permisos.
+ */
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 

@@ -10,6 +10,9 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+/**
+ * Configuracion de carga de claves y material criptografico usado por la aplicacion.
+ */
 @Configuration
 public class KeyConfig {
 

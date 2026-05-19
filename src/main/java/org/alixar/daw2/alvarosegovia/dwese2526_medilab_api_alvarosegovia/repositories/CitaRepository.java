@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Repositorio de acceso a datos para la entidad Cita.
+ */
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     List<Cita> findByPacienteId(Long pacienteId);

@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+/**
+ * Repositorio de acceso a datos para la entidad Ruta.
+ */
 public interface RutaRepository extends JpaRepository<Ruta, Long> {
     @Override
     @EntityGraph(attributePaths = {"trailer", "tecnicos", "tecnicos.profile"})

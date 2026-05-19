@@ -7,6 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
+/**
+ * DTO usado en el dominio de usuarios para transportar datos de UserProfilePatchDTO.
+ */
 @Data
 public class UserProfilePatchDTO {
 

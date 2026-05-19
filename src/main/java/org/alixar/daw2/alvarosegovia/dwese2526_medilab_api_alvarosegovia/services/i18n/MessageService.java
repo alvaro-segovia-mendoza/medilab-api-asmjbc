@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
+/**
+ * Servicio de apoyo para resolver mensajes internacionalizados del backend.
+ */
 @Service
 public class MessageService {
 

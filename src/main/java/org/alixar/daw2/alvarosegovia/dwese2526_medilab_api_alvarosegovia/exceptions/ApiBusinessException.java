@@ -3,6 +3,9 @@ package org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.except
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Excepcion de negocio para devolver errores funcionales controlados en la API.
+ */
 @Getter
 public class ApiBusinessException extends RuntimeException {
 

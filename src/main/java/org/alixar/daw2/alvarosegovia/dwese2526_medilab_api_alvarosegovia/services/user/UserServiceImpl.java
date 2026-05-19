@@ -16,6 +16,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.reposit
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserProfileRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,9 +33,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Implementacion del servicio principal de usuarios y mantenimiento de cuentas.
+ */
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -91,8 +98,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long create(UserCreateDTO dto) {
         String normalizedEmail = normalizeEmail(dto.getEmail());
+        logger.info("Creando usuario con email={}", normalizedEmail);
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            logger.warn("Intento de alta duplicada para email={}", normalizedEmail);
             throw new DuplicateResourceException(
                     "user", "email", normalizedEmail
             );
@@ -112,15 +121,19 @@ public class UserServiceImpl implements UserService {
             user.setRoles(roles);
         }
 
-        return userRepository.save(user).getId();
+        Long userId = userRepository.save(user).getId();
+        logger.info("Usuario creado con id={}", userId);
+        return userId;
     }
 
 
     @Override
     public void update(UserUpdateDTO dto) {
         String normalizedEmail = normalizeEmail(dto.getEmail());
+        logger.info("Actualizando usuario id={} con email={}", dto.getId(), normalizedEmail);
 
         if (userRepository.existsByEmailIgnoreCaseAndIdNot(normalizedEmail, dto.getId())) {
+            logger.warn("Intento de actualizacion con email duplicado para userId={}", dto.getId());
             throw new DuplicateResourceException(
                     "user", "email", normalizedEmail
             );
@@ -145,11 +158,13 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(user);
+        logger.info("Usuario actualizado con id={}", dto.getId());
     }
 
 
     @Override
     public void delete(Long id) {
+        logger.info("Eliminando usuario id={}", id);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getName() != null) {
             userRepository.findByEmailIgnoreCase(auth.getName())
@@ -157,6 +172,7 @@ public class UserServiceImpl implements UserService {
                     .ifPresent(u -> { throw ApiBusinessException.badRequest("USER_CANNOT_DELETE_OWN_ACCOUNT", "api.error.user.cannotDeleteOwnAccount"); });
         }
         if (rutaRepository.existsByTecnicosId(id)) {
+            logger.warn("No se puede eliminar userId={} porque tiene rutas asignadas", id);
             throw ApiBusinessException.badRequest("USER_HAS_RUTAS_ASSIGNED", "api.error.user.hasRutasAssigned");
         }
 
@@ -173,6 +189,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.delete(user);
+        logger.info("Usuario eliminado con id={}", id);
     }
 
     @Override
@@ -194,8 +211,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User registerPatient(String email, String rawPassword) {
         String normalizedEmail = normalizeEmail(email);
+        logger.info("Registrando paciente con email={}", normalizedEmail);
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            logger.warn("Intento de registro duplicado para email={}", normalizedEmail);
             throw new DuplicateResourceException("user", "email", normalizedEmail);
         }
 
@@ -212,7 +231,9 @@ public class UserServiceImpl implements UserService {
         user.setMustChangePassword(false);
         user.setLastPasswordChange(LocalDateTime.now());
         user.setRoles(Set.of(patientRole));
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        logger.info("Paciente registrado con id={}", savedUser.getId());
+        return savedUser;
     }
 
     @Override
@@ -245,6 +266,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updatePassword(Long userId, String rawPassword) {
+        logger.info("Actualizando contrasena de userId={}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", userId));
 
@@ -252,6 +274,7 @@ public class UserServiceImpl implements UserService {
         user.setLastPasswordChange(LocalDateTime.now());
         user.setMustChangePassword(false);
         userRepository.save(user);
+        logger.info("Contrasena actualizada para userId={}", userId);
     }
 
     private String normalizeEmail(String email) {

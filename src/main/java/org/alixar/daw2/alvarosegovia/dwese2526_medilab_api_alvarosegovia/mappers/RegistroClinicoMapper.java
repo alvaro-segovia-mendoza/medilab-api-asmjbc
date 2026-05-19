@@ -7,6 +7,9 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entitie
 
 import java.util.List;
 
+/**
+ * Mapper utilitario para convertir registros clinicos entre entidad y DTO.
+ */
 public class RegistroClinicoMapper {
 
     public static RegistroClinicoDTO toDTO(RegistroClinico entity) {

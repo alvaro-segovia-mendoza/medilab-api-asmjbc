@@ -18,6 +18,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.service
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.i18n.MessageService;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.services.user.UserService;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.utils.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,11 +37,15 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Servicio de autenticacion que emite tokens JWT y gestiona el ciclo de recuperacion de contrasena.
+ */
 @Service
 @Transactional
 public class AuthenticationService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -71,6 +77,7 @@ public class AuthenticationService {
     }
 
     public AuthResponseDTO authenticate(AuthRequestDTO authRequest) {
+        logger.info("Autenticando usuario con email={}", authRequest.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         normalizeEmail(authRequest.getEmail()),
@@ -82,6 +89,7 @@ public class AuthenticationService {
     }
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
+        logger.info("Registrando paciente con email={}", request.getEmail());
         validateMatchingPasswords(request.getPassword(), request.getConfirmPassword());
 
         User user = userService.registerPatient(request.getEmail(), request.getPassword());
@@ -90,11 +98,13 @@ public class AuthenticationService {
     }
 
     public AuthResponseDTO refresh(AuthRefreshRequestDTO request) {
+        logger.info("Renovando access token a partir de refresh token");
         String refreshToken = request.getRefreshToken();
         String username;
         try {
             username = jwtUtil.extractUsername(refreshToken);
         } catch (JwtException | IllegalArgumentException e) {
+            logger.warn("Refresh token invalido durante la renovacion");
             throw ApiBusinessException.badRequest("INVALID_REFRESH_TOKEN", "api.error.refreshTokenInvalid");
         }
         User user = userService.getByEmail(username);
@@ -111,6 +121,7 @@ public class AuthenticationService {
 
     public void forgotPassword(PasswordResetRequestDTO request, HttpServletRequest httpRequest) {
         String normalizedEmail = normalizeEmail(request.getEmail());
+        logger.info("Generando solicitud de reset de contrasena para email={}", normalizedEmail);
         User user = userService.getByEmail(normalizedEmail);
 
         String rawToken = generateOpaqueToken();
@@ -139,18 +150,21 @@ public class AuthenticationService {
     }
 
     public void resetPassword(PasswordResetDTO request) {
+        logger.info("Consumiendo token opaco para reset de contrasena");
         validateMatchingPasswords(request.getNewPassword(), request.getConfirmPassword());
 
         PasswordResetToken token = passwordResetTokenRepository.findByTokenHash(hashToken(request.getToken()))
                 .orElseThrow(() -> new ResourceNotFoundException("passwordResetToken", "token", "provided"));
 
         if (token.isUsed() || token.isExpired()) {
+            logger.warn("Intento de uso de token de reset invalido o expirado");
             throw ApiBusinessException.badRequest("INVALID_PASSWORD_RESET_TOKEN", "api.error.passwordResetTokenInvalid");
         }
 
         userService.updatePassword(token.getUser().getId(), request.getNewPassword());
         token.setUsedAt(LocalDateTime.now());
         passwordResetTokenRepository.save(token);
+        logger.info("Contrasena restablecida para userId={}", token.getUser().getId());
     }
 
     private AuthResponseDTO buildAuthResponse(String username, List<String> roles, String messageKey) {

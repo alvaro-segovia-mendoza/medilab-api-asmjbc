@@ -17,6 +17,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de ParadaUpdateDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

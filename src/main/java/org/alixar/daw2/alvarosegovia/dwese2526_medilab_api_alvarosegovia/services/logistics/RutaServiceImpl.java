@@ -14,6 +14,8 @@ import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.reposit
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.RutaRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.TrailerRepository;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,11 +29,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Implementacion del servicio que valida y persiste rutas operativas.
+ */
 @Service
 @Transactional
 public class RutaServiceImpl implements RutaService {
 
     private static final String ROLE_TECNICO = "ROLE_TECNICO";
+    private static final Logger logger = LoggerFactory.getLogger(RutaServiceImpl.class);
     private static final int MIN_TECNICOS = 1;
     private static final int MAX_TECNICOS = 2;
     private static final List<Cita.EstadoCita> BLOCKING_APPOINTMENT_STATES = List.of(
@@ -75,6 +81,7 @@ public class RutaServiceImpl implements RutaService {
 
     @Override
     public RutaDTO create(RutaCreateDTO dto) {
+        logger.info("Creando ruta con nombre={}", dto.getNombre());
         validateRutaCampaignDates(dto.getFechaInicio(), dto.getFechaFin());
         Trailer trailer = findActiveTrailer(dto.getTrailerId());
         Set<User> tecnicos = resolveTecnicos(dto.getTecnicoIds());
@@ -90,11 +97,14 @@ public class RutaServiceImpl implements RutaService {
                 .trailer(trailer)
                 .tecnicos(tecnicos)
                 .build();
-        return RutaMapper.toDTO(rutaRepository.save(ruta));
+        RutaDTO created = RutaMapper.toDTO(rutaRepository.save(ruta));
+        logger.info("Ruta creada con id={}", created.getId());
+        return created;
     }
 
     @Override
     public RutaDTO update(RutaUpdateDTO dto) {
+        logger.info("Actualizando ruta id={}", dto.getId());
         validateRutaCampaignDates(dto.getFechaInicio(), dto.getFechaFin());
         Ruta ruta = findRuta(dto.getId());
         Trailer trailer = findActiveTrailer(dto.getTrailerId());
@@ -111,15 +121,19 @@ public class RutaServiceImpl implements RutaService {
         ruta.setDescripcion(dto.getDescripcion());
         ruta.setTrailer(trailer);
         ruta.setTecnicos(tecnicos);
-        return RutaMapper.toDTO(rutaRepository.save(ruta));
+        RutaDTO updated = RutaMapper.toDTO(rutaRepository.save(ruta));
+        logger.info("Ruta actualizada con id={}", updated.getId());
+        return updated;
     }
 
     @Override
     public void delete(Long id) {
+        logger.info("Eliminando ruta id={}", id);
         if (!rutaRepository.existsById(id)) {
             throw new ResourceNotFoundException("ruta", "id", id);
         }
         rutaRepository.deleteById(id);
+        logger.info("Ruta eliminada con id={}", id);
     }
 
     private Ruta findRuta(Long id) {

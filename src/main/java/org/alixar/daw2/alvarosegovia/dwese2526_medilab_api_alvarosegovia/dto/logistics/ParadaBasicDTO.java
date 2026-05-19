@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * DTO usado en el dominio logistico para transportar datos de ParadaBasicDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

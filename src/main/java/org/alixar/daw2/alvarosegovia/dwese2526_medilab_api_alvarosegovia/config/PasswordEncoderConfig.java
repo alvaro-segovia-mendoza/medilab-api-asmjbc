@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Configuracion del codificador de contrasenas usado por Spring Security.
+ */
 @Configuration
 public class PasswordEncoderConfig {
 

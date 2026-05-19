@@ -12,6 +12,9 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Factoría utilitaria para construir respuestas de error consistentes para la API.
+ */
 @Component
 public class ApiErrorFactory {
 

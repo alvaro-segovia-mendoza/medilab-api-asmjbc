@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuracion de Jackson para serializacion y deserializacion JSON del backend.
+ */
 @Configuration
 public class JacksonConfig {
 

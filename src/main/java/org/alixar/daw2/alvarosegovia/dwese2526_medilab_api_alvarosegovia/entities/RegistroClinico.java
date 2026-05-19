@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad JPA que almacena el borrador tecnico y la revision medica de una cita.
+ */
 @Entity
 @Table(name = "registros_clinicos")
 @Data

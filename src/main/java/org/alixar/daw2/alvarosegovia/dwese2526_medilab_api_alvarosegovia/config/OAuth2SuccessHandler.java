@@ -16,6 +16,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Manejador de exito para autenticacion OAuth2 y redireccion posterior al frontend.
+ */
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 

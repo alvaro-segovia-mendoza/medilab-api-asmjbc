@@ -8,6 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.alixar.daw2.alvarosegovia.dwese2526_medilab_api_alvarosegovia.entities.Cita;
 
+/**
+ * DTO usado en el dominio clinico para transportar datos de CitaUpdateDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

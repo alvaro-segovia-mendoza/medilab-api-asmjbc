@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador REST para consultar el historial clinico agregado de pacientes.
+ */
 @RestController
 @RequestMapping("/api/historiales-clinicos")
 @Tag(name = "Historial clínico", description = "Consulta agregada del historial médico del paciente")
@@ -23,6 +26,12 @@ public class HistorialClinicoController {
     @Autowired
     private HistorialClinicoService historialClinicoService;
 
+    /**
+     * Obtiene el historial clinico agregado de un paciente.
+     *
+     * @param pacienteId identificador del paciente.
+     * @return historial clinico compuesto por registros confirmados.
+     */
     @GetMapping("/pacientes/{pacienteId}")
     @Operation(summary = "Consultar historial clínico agregado", description = "Devuelve el historial clínico agregado de un paciente con sus registros confirmados.")
     public ResponseEntity<HistorialClinicoDTO> getByPaciente(@PathVariable Long pacienteId) {

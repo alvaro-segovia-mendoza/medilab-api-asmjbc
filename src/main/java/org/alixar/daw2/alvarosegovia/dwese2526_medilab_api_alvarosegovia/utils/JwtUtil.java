@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Utilidad de apoyo para generar y validar tokens JWT de acceso y refresco.
+ */
 @Component
 public class JwtUtil {
 

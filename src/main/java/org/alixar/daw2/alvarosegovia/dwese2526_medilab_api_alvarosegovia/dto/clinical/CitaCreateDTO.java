@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+/**
+ * DTO usado en el dominio clinico para transportar datos de CitaCreateDTO.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
