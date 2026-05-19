@@ -224,7 +224,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findOrCreateGithubUser(String email, String githubLogin) {
+    public User findOrCreateOAuth2User(String email, String displayName) {
         return userRepository.findByEmailIgnoreCase(email).orElseGet(() -> {
             Role patientRole = roleRepository.findByName("ROLE_PACIENTE")
                     .orElseThrow(() -> new ResourceNotFoundException("role", "name", "ROLE_PACIENTE"));

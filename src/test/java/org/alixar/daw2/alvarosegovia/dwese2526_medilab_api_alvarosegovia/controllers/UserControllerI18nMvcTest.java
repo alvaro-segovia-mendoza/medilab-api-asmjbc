@@ -112,7 +112,7 @@ class UserControllerI18nMvcTest {
         }
 
         @Override
-        public User findOrCreateGithubUser(String email, String githubLogin) {
+        public User findOrCreateOAuth2User(String email, String displayName) {
             throw new UnsupportedOperationException();
         }
 
