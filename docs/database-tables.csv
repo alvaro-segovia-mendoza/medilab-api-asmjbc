@@ -1,0 +1,102 @@
+tabla,columna,tipo,restricciones,relacion
+users,id,BIGINT,PK AUTO_INCREMENT,
+users,email,VARCHAR(100),NOT NULL UNIQUE,
+users,password_hash,VARCHAR(500),NOT NULL,
+users,active,BOOLEAN,NOT NULL,
+users,account_non_locked,BOOLEAN,NOT NULL,
+users,failed_login_attempts,INTEGER,NOT NULL DEFAULT 0,
+users,email_verified,BOOLEAN,NOT NULL,
+users,must_change_password,BOOLEAN,NOT NULL,
+users,last_password_change,DATETIME,,
+users,password_expires_at,DATETIME,,
+user_profiles,user_id,BIGINT,PK FK,→ users.id
+user_profiles,first_name,VARCHAR(60),,
+user_profiles,last_name,VARCHAR(80),,
+user_profiles,phone_number,VARCHAR(30),,
+user_profiles,profile_image,VARCHAR(255),,
+user_profiles,bio,VARCHAR(500),,
+user_profiles,locale,VARCHAR(10),,
+user_profiles,dni,VARCHAR(20),UNIQUE,
+user_profiles,date_of_birth,DATE,,
+user_profiles,address,VARCHAR(150),,
+user_profiles,city,VARCHAR(50),,
+user_profiles,province,VARCHAR(50),,
+user_profiles,created_at,DATETIME,NOT NULL,
+user_profiles,updated_at,DATETIME,NOT NULL,
+roles,id,BIGINT,PK AUTO_INCREMENT,
+roles,name,VARCHAR(50),NOT NULL UNIQUE,
+roles,display_name,VARCHAR(100),NOT NULL,
+roles,description,VARCHAR(255),,
+user_roles,user_id,BIGINT,FK,→ users.id
+user_roles,role_id,BIGINT,FK,→ roles.id
+password_reset_tokens,id,BIGINT,PK AUTO_INCREMENT,
+password_reset_tokens,user_id,BIGINT,FK NOT NULL,→ users.id
+password_reset_tokens,token_hash,VARCHAR(64),NOT NULL,
+password_reset_tokens,expires_at,DATETIME,NOT NULL,
+password_reset_tokens,used_at,DATETIME,,
+password_reset_tokens,created_at,DATETIME,NOT NULL,
+password_reset_tokens,request_ip,VARCHAR(45),,
+password_reset_tokens,user_agent,VARCHAR(255),,
+trailers,id,BIGINT,PK AUTO_INCREMENT,
+trailers,codigo,VARCHAR(30),NOT NULL UNIQUE,
+trailers,nombre,VARCHAR(100),NOT NULL,
+trailers,activo,BOOLEAN,NOT NULL,
+trailers,descripcion,VARCHAR(255),,
+rutas,id,BIGINT,PK AUTO_INCREMENT,
+rutas,trailer_id,BIGINT,FK NOT NULL,→ trailers.id
+rutas,nombre,VARCHAR(100),NOT NULL,
+rutas,origen,VARCHAR(100),NOT NULL,
+rutas,destino,VARCHAR(100),NOT NULL,
+rutas,activa,BOOLEAN,NOT NULL DEFAULT true,
+rutas,fecha_inicio,DATE,NOT NULL,
+rutas,fecha_fin,DATE,NOT NULL,
+rutas,descripcion,VARCHAR(500),,
+rutas,created_at,DATETIME,NOT NULL,
+rutas,updated_at,DATETIME,NOT NULL,
+ruta_tecnicos,ruta_id,BIGINT,FK,→ rutas.id
+ruta_tecnicos,tecnico_id,BIGINT,FK,→ users.id
+paradas,id,BIGINT,PK AUTO_INCREMENT,
+paradas,ruta_id,BIGINT,FK NOT NULL,→ rutas.id
+paradas,nombre,VARCHAR(100),NOT NULL,
+paradas,municipio,VARCHAR(100),NOT NULL,
+paradas,provincia,VARCHAR(100),NOT NULL,
+paradas,direccion,VARCHAR(150),,
+paradas,latitud,DECIMAL(9-6),NOT NULL,
+paradas,longitud,DECIMAL(9-6),NOT NULL,
+paradas,orden_parada,INTEGER,NOT NULL,
+paradas,fecha,DATE,NOT NULL,
+paradas,hora_inicio,TIME,NOT NULL,
+paradas,hora_fin,TIME,NOT NULL,
+paradas,capacidad_maxima,INTEGER,NOT NULL DEFAULT 1,
+paradas,activa,BOOLEAN,NOT NULL DEFAULT true,
+paradas,created_at,DATETIME,NOT NULL,
+paradas,updated_at,DATETIME,NOT NULL,
+slot_cita,id,BIGINT,PK AUTO_INCREMENT,
+slot_cita,parada_id,BIGINT,FK NOT NULL,→ paradas.id
+slot_cita,fecha_hora_inicio,DATETIME,NOT NULL,
+slot_cita,fecha_hora_fin,DATETIME,NOT NULL,
+slot_cita,cupo_numero,INTEGER,NOT NULL,
+slot_cita,estado,VARCHAR(20),NOT NULL,DISPONIBLE / RESERVADO / NO_DISPONIBLE
+cita,id_cita,BIGINT,PK AUTO_INCREMENT,
+cita,paciente_id,BIGINT,FK NOT NULL,→ users.id
+cita,tecnico_id,BIGINT,FK,→ users.id
+cita,doctor_id,BIGINT,FK,→ users.id
+cita,slot_id,BIGINT,FK NOT NULL UNIQUE,→ slot_cita.id
+cita,tipo_prueba,VARCHAR(50),NOT NULL,
+cita,estado,VARCHAR(20),NOT NULL,PENDIENTE / CONFIRMADA / RESULTADOS_SUBIDOS / RESULTADOS_APROBADOS / CANCELADA
+cita,created_at,DATETIME,NOT NULL,
+cita,updated_at,DATETIME,NOT NULL,
+registros_clinicos,id,BIGINT,PK AUTO_INCREMENT,
+registros_clinicos,cita_id,BIGINT,FK NOT NULL,→ cita.id_cita
+registros_clinicos,paciente_id,BIGINT,FK NOT NULL,→ users.id
+registros_clinicos,tecnico_id,BIGINT,FK NOT NULL,→ users.id
+registros_clinicos,medico_id,BIGINT,FK,→ users.id
+registros_clinicos,tipo_prueba,VARCHAR(50),NOT NULL,
+registros_clinicos,resultado,TEXT,NOT NULL,
+registros_clinicos,observaciones_tecnico,TEXT,,
+registros_clinicos,observaciones_medico,TEXT,,
+registros_clinicos,receta_o_solucion,TEXT,,
+registros_clinicos,estado,VARCHAR(30),NOT NULL,BORRADOR / PENDIENTE_REVISION / CONFIRMADO / RECHAZADO
+registros_clinicos,confirmed_at,DATETIME,,
+registros_clinicos,created_at,DATETIME,NOT NULL,
+registros_clinicos,updated_at,DATETIME,NOT NULL,

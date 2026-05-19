@@ -1,0 +1,187 @@
+# Modelo ER de la base de datos
+
+Este diagrama está basado en [src/main/resources/schema.sql](/Users/alvaro/school/medilab/medilab-api-asmjbc/src/main/resources/schema.sql:1) y refleja la estructura relacional actual de la base de datos.
+
+## Diagrama ER
+
+```mermaid
+erDiagram
+    USERS {
+        BIGINT id PK
+        VARCHAR email UK
+        VARCHAR password_hash
+        BOOLEAN active
+        BOOLEAN account_non_locked
+        DATETIME last_password_change
+        DATETIME password_expires_at
+        INT failed_login_attempts
+        BOOLEAN email_verified
+        BOOLEAN must_change_password
+    }
+
+    USER_PROFILES {
+        BIGINT user_id PK, FK
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR phone_number
+        VARCHAR profile_image
+        VARCHAR bio
+        VARCHAR locale
+        VARCHAR dni UK
+        DATE date_of_birth
+        VARCHAR address
+        VARCHAR city
+        VARCHAR province
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    ROLES {
+        BIGINT id PK
+        VARCHAR name UK
+        VARCHAR display_name
+        VARCHAR description
+    }
+
+    USER_ROLES {
+        BIGINT user_id PK, FK
+        BIGINT role_id PK, FK
+    }
+
+    TRAILERS {
+        BIGINT id PK
+        VARCHAR codigo UK
+        VARCHAR nombre
+        BOOLEAN activo
+        VARCHAR descripcion
+    }
+
+    RUTAS {
+        BIGINT id PK
+        VARCHAR nombre
+        VARCHAR origen
+        VARCHAR destino
+        BOOLEAN activa
+        BIGINT trailer_id FK
+        DATE fecha_inicio
+        DATE fecha_fin
+        VARCHAR descripcion
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    RUTA_TECNICOS {
+        BIGINT ruta_id PK, FK
+        BIGINT tecnico_id PK, FK
+    }
+
+    PARADAS {
+        BIGINT id PK
+        BIGINT ruta_id FK
+        VARCHAR nombre
+        VARCHAR municipio
+        VARCHAR provincia
+        VARCHAR direccion
+        DECIMAL latitud
+        DECIMAL longitud
+        INT orden_parada
+        DATE fecha
+        TIME hora_inicio
+        TIME hora_fin
+        INT capacidad_maxima
+        BOOLEAN activa
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    SLOT_CITA {
+        BIGINT id PK
+        BIGINT parada_id FK
+        DATETIME fecha_hora_inicio
+        DATETIME fecha_hora_fin
+        INT cupo_numero
+        ENUM estado
+    }
+
+    CITA {
+        BIGINT id_cita PK
+        VARCHAR tipo_prueba
+        ENUM estado
+        BIGINT paciente_id FK
+        BIGINT tecnico_id FK
+        BIGINT doctor_id FK
+        BIGINT slot_id FK, UK
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    REGISTROS_CLINICOS {
+        BIGINT id PK
+        BIGINT cita_id FK
+        BIGINT paciente_id FK
+        BIGINT tecnico_id FK
+        BIGINT medico_id FK
+        VARCHAR tipo_prueba
+        TEXT resultado
+        TEXT observaciones_tecnico
+        TEXT observaciones_medico
+        TEXT receta_o_solucion
+        ENUM estado
+        DATETIME confirmed_at
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    PASSWORD_RESET_TOKENS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR token_hash
+        DATETIME expires_at
+        DATETIME used_at
+        DATETIME created_at
+        VARCHAR request_ip
+        VARCHAR user_agent
+    }
+
+    USERS ||--|| USER_PROFILES : "tiene perfil"
+    USERS ||--o{ USER_ROLES : "asigna"
+    ROLES ||--o{ USER_ROLES : "pertenece"
+
+    TRAILERS ||--o{ RUTAS : "opera"
+    RUTAS ||--o{ RUTA_TECNICOS : "asigna"
+    USERS ||--o{ RUTA_TECNICOS : "participa como tecnico"
+
+    RUTAS ||--o{ PARADAS : "contiene"
+    PARADAS ||--o{ SLOT_CITA : "genera"
+    SLOT_CITA ||--o| CITA : "reserva"
+
+    USERS ||--o{ CITA : "es paciente"
+    USERS ||--o{ CITA : "es tecnico"
+    USERS ||--o{ CITA : "es doctor"
+
+    CITA ||--o{ REGISTROS_CLINICOS : "produce"
+    USERS ||--o{ REGISTROS_CLINICOS : "es paciente"
+    USERS ||--o{ REGISTROS_CLINICOS : "es tecnico"
+    USERS ||--o{ REGISTROS_CLINICOS : "es medico"
+
+    USERS ||--o{ PASSWORD_RESET_TOKENS : "solicita"
+```
+
+## Relaciones clave
+
+- `users` 1:1 `user_profiles`
+- `users` N:M `roles` mediante `user_roles`
+- `trailers` 1:N `rutas`
+- `rutas` N:M `users` como técnicos mediante `ruta_tecnicos`
+- `rutas` 1:N `paradas`
+- `paradas` 1:N `slot_cita`
+- `slot_cita` 1:0..1 `cita`
+- `users` 1:N `cita` en tres roles distintos: `paciente`, `tecnico`, `doctor`
+- `cita` 1:N `registros_clinicos`
+- `users` 1:N `password_reset_tokens`
+
+## Notas
+
+- `cita.slot_id` es `UNIQUE`, así que un `slot_cita` solo puede estar asociado a una cita.
+- `registros_clinicos` no limita a un único registro por `cita`; el modelo actual permite varios registros asociados a la misma cita.
+- `ruta_tecnicos` y `user_roles` son tablas puente para relaciones N:M.
