@@ -6,6 +6,9 @@ Este diagrama está basado en [src/main/resources/schema.sql](/Users/alvaro/scho
 
 ```mermaid
 erDiagram
+    direction LR
+
+    %% Seguridad y usuarios
     USERS {
         BIGINT id PK
         VARCHAR email UK
@@ -48,6 +51,18 @@ erDiagram
         BIGINT role_id PK, FK
     }
 
+    PASSWORD_RESET_TOKENS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR token_hash
+        DATETIME expires_at
+        DATETIME used_at
+        DATETIME created_at
+        VARCHAR request_ip
+        VARCHAR user_agent
+    }
+
+    %% Logistica
     TRAILERS {
         BIGINT id PK
         VARCHAR codigo UK
@@ -94,6 +109,7 @@ erDiagram
         DATETIME updated_at
     }
 
+    %% Clinica
     SLOT_CITA {
         BIGINT id PK
         BIGINT parada_id FK
@@ -110,7 +126,7 @@ erDiagram
         BIGINT paciente_id FK
         BIGINT tecnico_id FK
         BIGINT doctor_id FK
-        BIGINT slot_id FK, UK
+        BIGINT slot_id FK
         DATETIME created_at
         DATETIME updated_at
     }
@@ -132,20 +148,10 @@ erDiagram
         DATETIME updated_at
     }
 
-    PASSWORD_RESET_TOKENS {
-        BIGINT id PK
-        BIGINT user_id FK
-        VARCHAR token_hash
-        DATETIME expires_at
-        DATETIME used_at
-        DATETIME created_at
-        VARCHAR request_ip
-        VARCHAR user_agent
-    }
-
     USERS ||--|| USER_PROFILES : "tiene perfil"
     USERS ||--o{ USER_ROLES : "asigna"
     ROLES ||--o{ USER_ROLES : "pertenece"
+    USERS ||--o{ PASSWORD_RESET_TOKENS : "solicita"
 
     TRAILERS ||--o{ RUTAS : "opera"
     RUTAS ||--o{ RUTA_TECNICOS : "asigna"
@@ -153,7 +159,7 @@ erDiagram
 
     RUTAS ||--o{ PARADAS : "contiene"
     PARADAS ||--o{ SLOT_CITA : "genera"
-    SLOT_CITA ||--o| CITA : "reserva"
+    SLOT_CITA ||--o{ CITA : "reserva"
 
     USERS ||--o{ CITA : "es paciente"
     USERS ||--o{ CITA : "es tecnico"
@@ -163,8 +169,6 @@ erDiagram
     USERS ||--o{ REGISTROS_CLINICOS : "es paciente"
     USERS ||--o{ REGISTROS_CLINICOS : "es tecnico"
     USERS ||--o{ REGISTROS_CLINICOS : "es medico"
-
-    USERS ||--o{ PASSWORD_RESET_TOKENS : "solicita"
 ```
 
 ## Relaciones clave
@@ -175,7 +179,7 @@ erDiagram
 - `rutas` N:M `users` como técnicos mediante `ruta_tecnicos`
 - `rutas` 1:N `paradas`
 - `paradas` 1:N `slot_cita`
-- `slot_cita` 1:0..1 `cita`
+- `slot_cita` 1:N `cita`
 - `users` 1:N `cita` en tres roles distintos: `paciente`, `tecnico`, `doctor`
 - `cita` 1:N `registros_clinicos`
 - `users` 1:N `password_reset_tokens`
