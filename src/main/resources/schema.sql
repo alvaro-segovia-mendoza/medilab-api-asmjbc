@@ -283,8 +283,7 @@ CREATE TABLE cita (
     INDEX idx_cita_paciente_id (paciente_id),
     INDEX idx_cita_tecnico_id (tecnico_id),
     INDEX idx_cita_doctor_id (doctor_id),
-    INDEX idx_cita_slot_id (slot_id),
-    CONSTRAINT uq_cita_slot UNIQUE (slot_id)
+    INDEX idx_cita_slot_id (slot_id)
 );
 
 CREATE TABLE registros_clinicos (

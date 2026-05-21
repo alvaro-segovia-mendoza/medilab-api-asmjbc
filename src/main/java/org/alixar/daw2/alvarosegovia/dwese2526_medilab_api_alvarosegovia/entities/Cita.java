@@ -56,7 +56,7 @@ public class Cita {
     private User doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    @JoinColumn(name = "slot_id", nullable = false)
     private SlotCita slot;
 
     @CreationTimestamp
